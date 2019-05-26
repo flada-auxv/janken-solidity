@@ -1,4 +1,5 @@
 const Janken = artifacts.require("Janken");
+const truffleAssert = require('truffle-assertions');
 
 const HAND = {
   ROCK: 0,
@@ -42,10 +43,10 @@ contract('Janken', (accounts) => {
 
     context('without sending any ETH', () => {
       it('should revert', async () => {
-        await instance.createGame();
-        const createdGame = await instance.games(1);
-        assert.equal(accounts[0], createdGame.owner);
-        assert.equal(0, createdGame.requiredDeposit); // FIXME!!
+        await truffleAssert.reverts(
+          instance.createGame(),
+          "deposit must be greater than 0"
+        );
       });
     })
   });

@@ -23,6 +23,8 @@ contract Janken {
   }
 
   function createGame() public payable {
+    require(msg.value > 0, "deposit must be greater than 0");
+
     gameId += 1;
     Game storage game = games[gameId];
     game.owner = msg.sender;
