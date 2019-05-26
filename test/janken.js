@@ -48,7 +48,42 @@ contract('Janken', (accounts) => {
           "deposit must be greater than 0"
         );
       });
-    })
+    });
+  });
+
+  describe('joinGame', () => {
+    beforeEach(async () => {
+      await deploy().then(async () => {
+        await instance.createGame({from: accounts[0], value: 10})
+      });
+    });
+
+    context('when depositing the same amount of requiredDeposit', () => {
+      it('should update the game', async () => {
+        await instance.joinGame(1, {from: accounts[1], value: 10});
+
+        const game = await instance.games.call(1);
+        assert.equal(accounts[1], game.opponent);
+      });
+    });
+
+    context('when specified wrong gameId', () => {
+      it('should revert', async () => {
+        await truffleAssert.reverts(
+          instance.joinGame(42, {from: accounts[1], value: 10}),
+          "the game does not found"
+        );
+      });
+    });
+
+    context('when depositing the not same amount of requiredDeposit', () => {
+      it('should revert', async () => {
+        await truffleAssert.reverts(
+          instance.joinGame(1, {from: accounts[1], value: 5}),
+          "deposit amount must be equal onwer's amount"
+        );
+      });
+    });
   });
 
   describe('startSolo', () => {
@@ -72,5 +107,5 @@ contract('Janken', (accounts) => {
 
       assert.equal(result, RESULT.WIN);
     });
-  })
+  });
 });

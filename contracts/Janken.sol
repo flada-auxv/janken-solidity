@@ -7,6 +7,7 @@ contract Janken {
   uint public gameId = 0;
   mapping (uint => Game) public games;
   struct Game {
+    GameStatus status;
     uint requiredDeposit;
     address owner;
     address opponent;
@@ -16,6 +17,16 @@ contract Janken {
     uint256 opponent_decrypted_secret;
     uint256 owner_secret;
     uint256 opponent_secret;
+  }
+  enum GameStatus {
+    DoesNotExist,
+    GameCreated,
+    GameStarted,
+    OwnerCommited,
+    OpponentCommited,
+    OwnerRevealed,
+    OpponentRevealed,
+    Finished
   }
 
   function startSolo(Hand hand) public pure returns (Result) {
@@ -29,9 +40,19 @@ contract Janken {
     Game storage game = games[gameId];
     game.owner = msg.sender;
     game.requiredDeposit = msg.value;
+    game.status = GameStatus.GameCreated;
   }
 
-  // function joinGame(gameId) {}
+  function joinGame(uint id) public payable {
+    Game storage game = games[id];
+
+    require(game.status != GameStatus.DoesNotExist, "the game does not found");
+    require(game.status == GameStatus.GameCreated, "status is invalid");
+    require(msg.value == game.requiredDeposit, "deposit amount must be equal onwer's amount");
+
+    game.opponent = msg.sender;
+    game.status = GameStatus.GameStarted;
+  }
 
   // function commitHand(gameId, hashedHand) {}
 
