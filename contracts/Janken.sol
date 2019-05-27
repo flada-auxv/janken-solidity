@@ -1,8 +1,8 @@
 pragma solidity >=0.5.0 <0.6.0;
 
 contract Janken {
-  enum Hand { Rock, Paper, Scissors }
-  enum Result { Draw, Win, Loss }
+  enum Hand { Null, Rock, Paper, Scissors }
+  enum Result { Null, Draw, Win, Loss }
 
   uint public gameId = 0;
   mapping (uint => Game) public games;
@@ -11,21 +11,20 @@ contract Janken {
     uint requiredDeposit;
     address owner;
     address opponent;
-    uint256 owner_encrypted_hand;
-    uint256 opponent_encrypted_hand;
-    uint256 owner_decrypted_hand;
-    uint256 opponent_decrypted_secret;
-    uint256 owner_secret;
-    uint256 opponent_secret;
+    bytes32 ownerEncryptedHand;
+    bytes32 opponentEncryptedHand;
+    Hand ownerDecryptedHand;
+    Hand opponentDecryptedHand;
+    bytes32 ownerSecret;
+    bytes32 opponentSecret;
+    Result result;
+    address winner;
   }
   enum GameStatus {
     DoesNotExist,
     GameCreated,
     GameStarted,
-    OwnerCommited,
-    OpponentCommited,
-    OwnerRevealed,
-    OpponentRevealed,
+    AcceptingWithdrawal,
     Finished
   }
 
@@ -33,30 +32,101 @@ contract Janken {
     return judge(hand, Hand.Rock);
   }
 
-  function createGame() public payable {
+  function createGame(bytes32 encryptedHand) public payable {
     require(msg.value > 0, "deposit must be greater than 0");
 
     gameId += 1;
     Game storage game = games[gameId];
     game.owner = msg.sender;
     game.requiredDeposit = msg.value;
+    game.ownerEncryptedHand = encryptedHand;
     game.status = GameStatus.GameCreated;
   }
 
-  function joinGame(uint id) public payable {
+  function joinGame(uint id, bytes32 encryptedHand) public payable {
     Game storage game = games[id];
 
     require(game.status != GameStatus.DoesNotExist, "the game does not found");
-    require(game.status == GameStatus.GameCreated, "status is invalid");
+    gameStatusShouldBe(game, GameStatus.GameCreated);
     require(msg.value == game.requiredDeposit, "deposit amount must be equal onwer's amount");
 
     game.opponent = msg.sender;
+    game.opponentEncryptedHand = encryptedHand;
     game.status = GameStatus.GameStarted;
   }
 
-  // function commitHand(gameId, hashedHand) {}
+  function revealHand(uint id, uint n, bytes32 secret) public {
+    Game storage game = games[id];
 
-  // function revealHand(gameId, secret, hand) {}
+    gameStatusShouldBe(game, GameStatus.GameStarted);
+    restrictAccessOnlyParticipants(game);
+
+    Hand hand = convertIntToHand(n);
+    bytes32 eHand = encryptedHand(n, secret);
+
+    if (msg.sender == game.owner) {
+      require(game.ownerEncryptedHand == eHand, "commit verification is failed");
+      game.ownerDecryptedHand = hand;
+      game.ownerSecret = secret;
+    } else if (msg.sender == game.opponent) {
+      require(game.opponentEncryptedHand == eHand, "commit verification is failed");
+      game.opponentDecryptedHand = hand;
+      game.opponentSecret = secret;
+    }
+
+    if (game.ownerDecryptedHand != Hand.Null && game.opponentDecryptedHand != Hand.Null) {
+      Result result = judge(game.ownerDecryptedHand, game.opponentDecryptedHand);
+      if (result == Result.Win) {
+        game.winner = game.owner;
+      } else if (result == Result.Loss) {
+        game.winner = game.opponent;
+      } else if (result == Result.Draw) {
+        game.winner = address(0);
+      } else {
+        revert("unreachable");
+      }
+      game.status = GameStatus.AcceptingWithdrawal;
+    }
+  }
+
+  function withdraw(uint id) public payable {
+    Game memory game = games[id];
+
+    gameStatusShouldBe(game, GameStatus.AcceptingWithdrawal);
+    restrictAccessOnlyParticipants(game);
+
+    if (game.winner == msg.sender) {
+      msg.sender.transfer(game.requiredDeposit * 2);
+    } else if (game.winner == address(0)) {
+      msg.sender.transfer(game.requiredDeposit);
+    }
+  }
+
+  function gameStatusShouldBe(Game memory game, GameStatus status) private pure {
+    require(game.status == status, "status is invalid");
+  }
+
+  function restrictAccessOnlyParticipants(Game memory game) private view {
+    require(msg.sender == game.owner || msg.sender == game.opponent, "forbidden");
+  }
+
+  function convertIntToHand(uint n) private pure returns (Hand) {
+    if (n == 0) {
+      return Hand.Null;
+    } else if (n == 1) {
+      return Hand.Rock;
+    } else if (n == 2) {
+      return Hand.Paper;
+    } else if (n == 3) {
+      return Hand.Scissors;
+    } else {
+      revert("Unknown value");
+    }
+  }
+
+  function encryptedHand(uint n, bytes32 secret) private pure returns (bytes32) {
+    return keccak256(abi.encodePacked(n, secret));
+  }
 
   function judge(Hand hand1, Hand hand2) public pure returns (Result) {
     if (hand1 == hand2) {
