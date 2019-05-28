@@ -1,0 +1,18 @@
+{
+    "env": {
+        "node": true,
+        "es6": true
+    },
+    "extends": "airbnb-base",
+    "globals": {
+        "artifacts": true,
+        "contract": true,
+        "assert": true,
+        "web3": true
+    },
+    "parserOptions": {
+        "ecmaVersion": 2018,
+        "sourceType": "module"
+    },
+    "rules": {}
+}
