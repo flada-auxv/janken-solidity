@@ -62,9 +62,8 @@ contract('Janken', (accounts) => {
 
   describe('joinGame', () => {
     beforeEach(async () => {
-      await deploy().then(async () => {
-        await instance.createGame(encryptedHand, {from: accounts[0], value: 10});
-      });
+      await deploy();
+      await instance.createGame(encryptedHand, { from: accounts[0], value: 10 });
     });
 
     context('when depositing the same amount of requiredDeposit', () => {
