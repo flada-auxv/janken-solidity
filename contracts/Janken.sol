@@ -99,6 +99,8 @@ contract Janken {
       msg.sender.transfer(game.requiredDeposit * 2);
     } else if (game.winner == address(0)) {
       msg.sender.transfer(game.requiredDeposit);
+    } else {
+      revert("you aren't eligible to withdraw");
     }
   }
 

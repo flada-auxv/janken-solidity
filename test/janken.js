@@ -1,5 +1,7 @@
 /* eslint-env mocha */
 
+const { balance } = require('openzeppelin-test-helpers');
+
 const Janken = artifacts.require('Janken');
 const truffleAssert = require('truffle-assertions');
 
@@ -183,27 +185,79 @@ contract('Janken', (accounts) => {
         });
       });
     });
-  });
 
-  describe('startSolo', () => {
-    beforeEach(deploy);
+    describe('withdraw', () => {
+      context('when owner wins', () => {
+        beforeEach(async () => {
+          await deploy();
+          await instance.createGame(encryptedHandRock, { from: accounts[0], value: web3.utils.toWei('0.015') });
+          await instance.joinGame(1, encryptedHandScissors, { from: accounts[1], value: web3.utils.toWei('0.015') });
+          await instance.revealHand(1, HAND.SCISSORS, web3.utils.soliditySha3('orange'), { from: accounts[1] });
+          await instance.revealHand(1, HAND.ROCK, web3.utils.soliditySha3('vanilla salt'), { from: accounts[0] });
+        });
 
-    it('should return the code of draw', async () => {
-      const result = await instance.startSolo.call(HAND.ROCK);
+        context('when owner tries to withdraw', () => {
+          it('should withdraw all deposits', async () => {
+            const balanceTracker = await balance.tracker(accounts[0]);
+            const receipt = await instance.withdraw(1, { from: accounts[0] });
+            const tx = await web3.eth.getTransaction(receipt.tx);
+            const gasUsed = web3.utils.toBN(receipt.receipt.gasUsed);
+            const gasPrice = web3.utils.toBN(tx.gasPrice);
 
-      assert.equal(result, RESULT.DRAW);
+            const delta = await balanceTracker.delta();
+            const transfered = web3.utils.toBN(web3.utils.toWei('0.03'));
+            const fee = gasPrice.mul(gasUsed);
+
+            assert.equal(delta.toString(10), transfered.sub(fee).toString(10));
+          });
+        });
+
+        context('when the opponent tries to withdraw', () => {
+          it('should reverts', async () => {
+            truffleAssert.reverts(
+              instance.withdraw(1, { from: accounts[1] }),
+              'you aren\'t eligible to withdraw',
+            );
+          });
+        });
+      });
+
+      context('when the game ends in a draw', () => {
+        beforeEach(async () => {
+          await deploy();
+          await instance.createGame(encryptedHandRock, { from: accounts[0], value: web3.utils.toWei('1') });
+          await instance.joinGame(1, encryptedHandRock, { from: accounts[1], value: web3.utils.toWei('1') });
+          await instance.revealHand(1, HAND.ROCK, web3.utils.soliditySha3('vanilla salt'), { from: accounts[0] });
+          await instance.revealHand(1, HAND.ROCK, web3.utils.soliditySha3('vanilla salt'), { from: accounts[1] });
+        });
+
+        context('when owner tries to withdraw', () => {
+          it('should withdraw deposits the only amount of deposited by myself', async () => {
+          });
+        });
+      });
     });
 
-    it('should return the code of loss', async () => {
-      const result = await instance.startSolo.call(HAND.SCISSORS);
+    describe('startSolo', () => {
+      beforeEach(deploy);
 
-      assert.equal(result, RESULT.LOSS);
-    });
+      it('should return the code of draw', async () => {
+        const result = await instance.startSolo.call(HAND.ROCK);
 
-    it('should return the code of win', async () => {
-      const result = await instance.startSolo.call(HAND.PAPER);
+        assert.equal(result, RESULT.DRAW);
+      });
 
-      assert.equal(result, RESULT.WIN);
+      it('should return the code of loss', async () => {
+        const result = await instance.startSolo.call(HAND.SCISSORS);
+
+        assert.equal(result, RESULT.LOSS);
+      });
+
+      it('should return the code of win', async () => {
+        const result = await instance.startSolo.call(HAND.PAPER);
+
+        assert.equal(result, RESULT.WIN);
+      });
     });
   });
 });
