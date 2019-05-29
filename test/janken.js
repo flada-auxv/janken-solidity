@@ -24,6 +24,13 @@ function createEncryptedHash(hand, salt) {
   const hashedSecret = soliditySha3(salt);
   return soliditySha3({ type: 'uint', value: hand }, { type: 'bytes32', value: hashedSecret });
 }
+async function calcFeeFromTxReceipt(receipt) {
+  const tx = await web3.eth.getTransaction(receipt.tx);
+  const gasUsed = toBN(receipt.receipt.gasUsed);
+  const gasPrice = toBN(tx.gasPrice);
+  return gasPrice.mul(gasUsed);
+}
+
 const encryptedHand = createEncryptedHash(HAND.ROCK, 'vanilla salt');
 const encryptedHandRock = encryptedHand;
 const encryptedHandScissors = createEncryptedHash(HAND.SCISSORS, 'orange');
@@ -203,12 +210,9 @@ contract('Janken', (accounts) => {
             const receipt = await instance.withdraw(1, { from: accounts[0] });
             const afterBalance = toBN(await web3.eth.getBalance(accounts[0]));
 
-            const tx = await web3.eth.getTransaction(receipt.tx);
-            const gasUsed = toBN(receipt.receipt.gasUsed);
-            const gasPrice = toBN(tx.gasPrice);
-            const fee = gasPrice.mul(gasUsed);
+            const fee = await calcFeeFromTxReceipt(receipt);
             const delta = afterBalance.sub(beforeBalance).toString(10);
-            const deltaWithoutFee = toBN(web3.utils.toWei('0.03'));
+            const deltaWithoutFee = toBN(toWei('0.03'));
 
             assert.equal(delta, deltaWithoutFee.sub(fee).toString(10));
           });
