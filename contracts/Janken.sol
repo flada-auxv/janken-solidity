@@ -28,6 +28,9 @@ contract Janken {
     Finished
   }
 
+  constructor() public payable {}
+  function () external payable {}
+
   function startSolo(Hand hand) public pure returns (Result) {
     return judge(hand, Hand.Rock);
   }
