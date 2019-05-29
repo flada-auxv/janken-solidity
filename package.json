@@ -24,6 +24,7 @@
     "eslint": "^5.16.0",
     "eslint-config-airbnb-base": "^13.1.0",
     "eslint-plugin-import": "^2.17.3",
+    "truffle": "^5.0.19",
     "truffle-assertions": "^0.9.0"
   }
 }
