@@ -1,7 +1,5 @@
 /* eslint-env mocha */
 
-const { balance } = require('openzeppelin-test-helpers');
-
 const Janken = artifacts.require('Janken');
 const truffleAssert = require('truffle-assertions');
 
@@ -201,17 +199,18 @@ contract('Janken', (accounts) => {
 
         context('when owner tries to withdraw', () => {
           it('should withdraw all deposits', async () => {
-            const balanceTracker = await balance.tracker(accounts[0]);
+            const beforeBalance = toBN(await web3.eth.getBalance(accounts[0]));
             const receipt = await instance.withdraw(1, { from: accounts[0] });
+            const afterBalance = toBN(await web3.eth.getBalance(accounts[0]));
+
             const tx = await web3.eth.getTransaction(receipt.tx);
             const gasUsed = toBN(receipt.receipt.gasUsed);
             const gasPrice = toBN(tx.gasPrice);
-
-            const delta = await balanceTracker.delta();
-            const transfered = toBN(web3.utils.toWei('0.03'));
             const fee = gasPrice.mul(gasUsed);
+            const delta = afterBalance.sub(beforeBalance).toString(10);
+            const deltaWithoutFee = toBN(web3.utils.toWei('0.03'));
 
-            assert.equal(delta.toString(10), transfered.sub(fee).toString(10));
+            assert.equal(delta, deltaWithoutFee.sub(fee).toString(10));
           });
         });
 

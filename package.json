@@ -19,13 +19,11 @@
     "url": "https://github.com/flada-auxv/janken-solidity/issues"
   },
   "homepage": "https://github.com/flada-auxv/janken-solidity#readme",
-  "dependencies": {
-    "truffle-assertions": "^0.9.0"
-  },
+  "dependencies": {},
   "devDependencies": {
     "eslint": "^5.16.0",
     "eslint-config-airbnb-base": "^13.1.0",
     "eslint-plugin-import": "^2.17.3",
-    "openzeppelin-test-helpers": "^0.4.0"
+    "truffle-assertions": "^0.9.0"
   }
 }
