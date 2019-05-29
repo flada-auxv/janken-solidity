@@ -20,13 +20,16 @@ const RESULT = {
 };
 
 let instance;
+const { toBN, soliditySha3 } = web3.utils;
+
 function createEncryptedHash(hand, salt) {
-  const hashedSecret = web3.utils.soliditySha3(salt);
-  return web3.utils.soliditySha3({ type: 'uint', value: hand }, { type: 'bytes32', value: hashedSecret });
+  const hashedSecret = soliditySha3(salt);
+  return soliditySha3({ type: 'uint', value: hand }, { type: 'bytes32', value: hashedSecret });
 }
 const encryptedHand = createEncryptedHash(HAND.ROCK, 'vanilla salt');
 const encryptedHandRock = encryptedHand;
 const encryptedHandScissors = createEncryptedHash(HAND.SCISSORS, 'orange');
+
 
 contract('Janken', (accounts) => {
   const deploy = async () => {
@@ -108,7 +111,7 @@ contract('Janken', (accounts) => {
     describe('commit verification and save its result', () => {
       context('when msg.sender is game owner', () => {
         it('should update owner side attributes of the game', async () => {
-          const secret = web3.utils.soliditySha3('vanilla salt');
+          const secret = soliditySha3('vanilla salt');
           await instance.revealHand(1, HAND.ROCK, secret, { from: accounts[0] });
 
           const game = await instance.games.call(1);
@@ -119,7 +122,7 @@ contract('Janken', (accounts) => {
 
       context('when msg.sender is the opponent', () => {
         it('should update opponent side attributes of the game', async () => {
-          const secret = web3.utils.soliditySha3('orange');
+          const secret = soliditySha3('orange');
           await instance.revealHand(1, HAND.SCISSORS, secret, { from: accounts[1] });
 
           const game = await instance.games.call(1);
@@ -129,7 +132,7 @@ contract('Janken', (accounts) => {
       });
       context('when a hand which is passed is different from the originally used hand', () => {
         it('should revert', async () => {
-          const secret = web3.utils.soliditySha3('orange');
+          const secret = soliditySha3('orange');
 
           await truffleAssert.reverts(
             instance.revealHand(1, HAND.ROCK, secret, { from: accounts[1] }),
@@ -140,7 +143,7 @@ contract('Janken', (accounts) => {
 
       context('when a secret which is passed is different from the originally used secret', () => {
         it('should revert', async () => {
-          const secret = web3.utils.soliditySha3('apple');
+          const secret = soliditySha3('apple');
 
           await truffleAssert.reverts(
             instance.revealHand(1, HAND.SCISSORS, secret, { from: accounts[1] }),
@@ -153,8 +156,8 @@ contract('Janken', (accounts) => {
     describe('save the result', () => {
       context('when owner wins', () => {
         it('should update result of the game', async () => {
-          await instance.revealHand(1, HAND.ROCK, web3.utils.soliditySha3('vanilla salt'), { from: accounts[0] });
-          await instance.revealHand(1, HAND.SCISSORS, web3.utils.soliditySha3('orange'), { from: accounts[1] });
+          await instance.revealHand(1, HAND.ROCK, soliditySha3('vanilla salt'), { from: accounts[0] });
+          await instance.revealHand(1, HAND.SCISSORS, soliditySha3('orange'), { from: accounts[1] });
 
           const game = await instance.games.call(1);
           assert.equal(accounts[0], game.winner);
@@ -165,8 +168,8 @@ contract('Janken', (accounts) => {
         it('should update result of the game', async () => {
           await instance.createGame(encryptedHandScissors, { from: accounts[0], value: 10 });
           await instance.joinGame(2, encryptedHandRock, { from: accounts[1], value: 10 });
-          await instance.revealHand(2, HAND.SCISSORS, web3.utils.soliditySha3('orange'), { from: accounts[0] });
-          await instance.revealHand(2, HAND.ROCK, web3.utils.soliditySha3('vanilla salt'), { from: accounts[1] });
+          await instance.revealHand(2, HAND.SCISSORS, soliditySha3('orange'), { from: accounts[0] });
+          await instance.revealHand(2, HAND.ROCK, soliditySha3('vanilla salt'), { from: accounts[1] });
 
           const game = await instance.games.call(2);
           assert.equal(accounts[1], game.winner);
@@ -177,8 +180,8 @@ contract('Janken', (accounts) => {
         it('should update result of the game', async () => {
           await instance.createGame(createEncryptedHash(HAND.ROCK, 'tiger'), { from: accounts[0], value: 10 });
           await instance.joinGame(2, createEncryptedHash(HAND.ROCK, 'dragon'), { from: accounts[1], value: 10 });
-          await instance.revealHand(2, HAND.ROCK, web3.utils.soliditySha3('dragon'), { from: accounts[1] });
-          await instance.revealHand(2, HAND.ROCK, web3.utils.soliditySha3('tiger'), { from: accounts[0] });
+          await instance.revealHand(2, HAND.ROCK, soliditySha3('dragon'), { from: accounts[1] });
+          await instance.revealHand(2, HAND.ROCK, soliditySha3('tiger'), { from: accounts[0] });
 
           const game = await instance.games.call(2);
           assert.equal(0, game.winner);
@@ -192,8 +195,8 @@ contract('Janken', (accounts) => {
           await deploy();
           await instance.createGame(encryptedHandRock, { from: accounts[0], value: web3.utils.toWei('0.015') });
           await instance.joinGame(1, encryptedHandScissors, { from: accounts[1], value: web3.utils.toWei('0.015') });
-          await instance.revealHand(1, HAND.SCISSORS, web3.utils.soliditySha3('orange'), { from: accounts[1] });
-          await instance.revealHand(1, HAND.ROCK, web3.utils.soliditySha3('vanilla salt'), { from: accounts[0] });
+          await instance.revealHand(1, HAND.SCISSORS, soliditySha3('orange'), { from: accounts[1] });
+          await instance.revealHand(1, HAND.ROCK, soliditySha3('vanilla salt'), { from: accounts[0] });
         });
 
         context('when owner tries to withdraw', () => {
@@ -201,11 +204,11 @@ contract('Janken', (accounts) => {
             const balanceTracker = await balance.tracker(accounts[0]);
             const receipt = await instance.withdraw(1, { from: accounts[0] });
             const tx = await web3.eth.getTransaction(receipt.tx);
-            const gasUsed = web3.utils.toBN(receipt.receipt.gasUsed);
-            const gasPrice = web3.utils.toBN(tx.gasPrice);
+            const gasUsed = toBN(receipt.receipt.gasUsed);
+            const gasPrice = toBN(tx.gasPrice);
 
             const delta = await balanceTracker.delta();
-            const transfered = web3.utils.toBN(web3.utils.toWei('0.03'));
+            const transfered = toBN(web3.utils.toWei('0.03'));
             const fee = gasPrice.mul(gasUsed);
 
             assert.equal(delta.toString(10), transfered.sub(fee).toString(10));
@@ -227,8 +230,8 @@ contract('Janken', (accounts) => {
           await deploy();
           await instance.createGame(encryptedHandRock, { from: accounts[0], value: web3.utils.toWei('1') });
           await instance.joinGame(1, encryptedHandRock, { from: accounts[1], value: web3.utils.toWei('1') });
-          await instance.revealHand(1, HAND.ROCK, web3.utils.soliditySha3('vanilla salt'), { from: accounts[0] });
-          await instance.revealHand(1, HAND.ROCK, web3.utils.soliditySha3('vanilla salt'), { from: accounts[1] });
+          await instance.revealHand(1, HAND.ROCK, soliditySha3('vanilla salt'), { from: accounts[0] });
+          await instance.revealHand(1, HAND.ROCK, soliditySha3('vanilla salt'), { from: accounts[1] });
         });
 
         context('when owner tries to withdraw', () => {
