@@ -231,8 +231,8 @@ contract('Janken', (accounts) => {
       context('when the game ends in a draw', () => {
         beforeEach(async () => {
           await deploy();
-          await instance.createGame(encryptedHandRock, { from: accounts[0], value: web3.utils.toWei('1') });
-          await instance.joinGame(1, encryptedHandRock, { from: accounts[1], value: web3.utils.toWei('1') });
+          await instance.createGame(encryptedHandRock, { from: accounts[0], value: toWei('1') });
+          await instance.joinGame(1, encryptedHandRock, { from: accounts[1], value: toWei('1') });
           await instance.revealHand(1, HAND.ROCK, soliditySha3('vanilla salt'), { from: accounts[0] });
           await instance.revealHand(1, HAND.ROCK, soliditySha3('vanilla salt'), { from: accounts[1] });
         });
