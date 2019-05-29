@@ -18,7 +18,7 @@ const RESULT = {
 };
 
 let instance;
-const { toBN, soliditySha3 } = web3.utils;
+const { soliditySha3, toBN, toWei } = web3.utils;
 
 function createEncryptedHash(hand, salt) {
   const hashedSecret = soliditySha3(salt);
@@ -191,8 +191,8 @@ contract('Janken', (accounts) => {
       context('when owner wins', () => {
         beforeEach(async () => {
           await deploy();
-          await instance.createGame(encryptedHandRock, { from: accounts[0], value: web3.utils.toWei('0.015') });
-          await instance.joinGame(1, encryptedHandScissors, { from: accounts[1], value: web3.utils.toWei('0.015') });
+          await instance.createGame(encryptedHandRock, { from: accounts[0], value: toWei('0.015') });
+          await instance.joinGame(1, encryptedHandScissors, { from: accounts[1], value: toWei('0.015') });
           await instance.revealHand(1, HAND.SCISSORS, soliditySha3('orange'), { from: accounts[1] });
           await instance.revealHand(1, HAND.ROCK, soliditySha3('vanilla salt'), { from: accounts[0] });
         });
