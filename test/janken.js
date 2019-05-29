@@ -218,6 +218,29 @@ contract('Janken', (accounts) => {
           });
         });
 
+        context('when owner tries to withdraw twice', async () => {
+          it('should revert', async () => {
+            // the contract receive enough eth to be withdrawn from the owner twice
+            instance.sendTransaction({ from: accounts[1], value: toWei('0.03') });
+
+            const beforeBalance = toBN(await web3.eth.getBalance(accounts[0]));
+            const receipt = await instance.withdraw(1, { from: accounts[0] });
+            const afterBalance = toBN(await web3.eth.getBalance(accounts[0]));
+
+            const fee = await calcFeeFromTxReceipt(receipt);
+            const delta = afterBalance.sub(beforeBalance).toString(10);
+            const deltaWithoutFee = toBN(toWei('0.03'));
+
+            assert.equal(delta, deltaWithoutFee.sub(fee).toString(10));
+
+            // FIXME: ooooops, this isn't passed!!!
+            await truffleAssert.reverts(
+              instance.withdraw(1, { from: accounts[0] }),
+              'commit verification is failed',
+            );
+          });
+        });
+
         context('when the opponent tries to withdraw', () => {
           it('should reverts', async () => {
             truffleAssert.reverts(
