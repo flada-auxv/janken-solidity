@@ -233,7 +233,6 @@ contract('Janken', (accounts) => {
 
             assert.equal(delta, deltaWithoutFee.sub(fee).toString(10));
 
-            // FIXME: ooooops, this isn't passed!!!
             await truffleAssert.reverts(
               instance.withdraw(1, { from: accounts[0] }),
               'you aren\'t eligible to withdraw',
