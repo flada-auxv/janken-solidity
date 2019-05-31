@@ -51,14 +51,14 @@ contract('Janken', (accounts) => {
 
         const firstGame = await instance.games.call(1);
         assert.equal(accounts[0], firstGame.host);
-        assert.equal(10, firstGame.requiredDeposit);
+        assert.equal(10, firstGame.deposit);
 
         await instance.createGame(encryptedHand, { from: accounts[1], value: 42 });
         assert.equal(2, await instance.gameId.call());
 
         const secondGame = await instance.games.call(2);
         assert.equal(accounts[1], secondGame.host);
-        assert.equal(42, secondGame.requiredDeposit);
+        assert.equal(42, secondGame.deposit);
       });
     });
 
@@ -78,7 +78,7 @@ contract('Janken', (accounts) => {
       await instance.createGame(encryptedHand, { from: accounts[0], value: 10 });
     });
 
-    context('when depositing the same amount of requiredDeposit', () => {
+    context('when depositing the same amount of deposit', () => {
       it('should update the game', async () => {
         await instance.joinGame(1, encryptedHand, { from: accounts[1], value: 10 });
 
@@ -96,7 +96,7 @@ contract('Janken', (accounts) => {
       });
     });
 
-    context('when depositing the not same amount of requiredDeposit', () => {
+    context('when depositing the not same amount of deposit', () => {
       it('should revert', async () => {
         await truffleAssert.reverts(
           instance.joinGame(1, encryptedHand, { from: accounts[1], value: 5 }),

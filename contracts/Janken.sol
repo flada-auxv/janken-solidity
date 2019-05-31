@@ -8,7 +8,7 @@ contract Janken {
   mapping (uint => Game) public games;
   struct Game {
     GameStatus status;
-    uint requiredDeposit;
+    uint deposit;
     address host;
     address opponent;
     bytes32 hostEncryptedHand;
@@ -40,7 +40,7 @@ contract Janken {
     gameId += 1;
     Game storage game = games[gameId];
     game.host = msg.sender;
-    game.requiredDeposit = msg.value;
+    game.deposit = msg.value;
     game.hostEncryptedHand = encryptedHand;
     game.status = GameStatus.GameCreated;
   }
@@ -50,7 +50,7 @@ contract Janken {
 
     require(game.status != GameStatus.DoesNotExist, "the game does not found");
     gameStatusShouldBe(game, GameStatus.GameCreated);
-    require(msg.value == game.requiredDeposit, "deposit amount must be equal onwer's amount");
+    require(msg.value == game.deposit, "deposit amount must be equal onwer's amount");
 
     game.opponent = msg.sender;
     game.opponentEncryptedHand = encryptedHand;
@@ -79,12 +79,12 @@ contract Janken {
     if (game.hostDecryptedHand != Hand.Null && game.opponentDecryptedHand != Hand.Null) {
       Result result = judge(game.hostDecryptedHand, game.opponentDecryptedHand);
       if (result == Result.Win) {
-        game.allowedWithdrawal[game.host] = game.requiredDeposit * 2;
+        game.allowedWithdrawal[game.host] = game.deposit * 2;
       } else if (result == Result.Loss) {
-        game.allowedWithdrawal[game.opponent] = game.requiredDeposit * 2;
+        game.allowedWithdrawal[game.opponent] = game.deposit * 2;
       } else if (result == Result.Draw) {
-        game.allowedWithdrawal[game.host] = game.requiredDeposit;
-        game.allowedWithdrawal[game.opponent] = game.requiredDeposit;
+        game.allowedWithdrawal[game.host] = game.deposit;
+        game.allowedWithdrawal[game.opponent] = game.deposit;
       } else {
         revert("unreachable!");
       }
