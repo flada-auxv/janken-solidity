@@ -103,6 +103,31 @@ contract Janken {
     }
   }
 
+  function getAllowedWithdrawalAmount(uint id, address addr) public view returns (uint) {
+    Game storage game = games[id];
+    return game.allowedWithdrawal[addr];
+  }
+
+  function judge(Hand hand1, Hand hand2) public pure returns (Result) {
+    if (hand1 == hand2) {
+      return Result.Draw;
+    } else if (
+      hand1 == Hand.Rock && hand2 == Hand.Scissors ||
+      hand1 == Hand.Paper && hand2 == Hand.Rock ||
+      hand1 == Hand.Scissors && hand2 == Hand.Paper
+    ) {
+      return Result.Win;
+    } else if (
+      hand1 == Hand.Rock && hand1 == Hand.Paper ||
+      hand1 == Hand.Paper && hand2 == Hand.Scissors ||
+      hand1 == Hand.Scissors && hand2 == Hand.Rock
+    ) {
+      return Result.Loss;
+    } else {
+      revert("unreachable!");
+    }
+  }
+
   function gameStatusShouldBe(Game memory game, GameStatus status) private pure {
     require(game.status == status, "status is invalid");
   }
@@ -127,30 +152,5 @@ contract Janken {
 
   function encryptedHand(uint n, bytes32 secret) private pure returns (bytes32) {
     return keccak256(abi.encodePacked(n, secret));
-  }
-
-  function getAllowedWithdrawalAmount(uint id, address addr) public view returns (uint) {
-    Game storage game = games[id];
-    return game.allowedWithdrawal[addr];
-  }
-
-  function judge(Hand hand1, Hand hand2) public pure returns (Result) {
-    if (hand1 == hand2) {
-      return Result.Draw;
-    } else if (
-      hand1 == Hand.Rock && hand2 == Hand.Scissors ||
-      hand1 == Hand.Paper && hand2 == Hand.Rock ||
-      hand1 == Hand.Scissors && hand2 == Hand.Paper
-    ) {
-      return Result.Win;
-    } else if (
-      hand1 == Hand.Rock && hand1 == Hand.Paper ||
-      hand1 == Hand.Paper && hand2 == Hand.Scissors ||
-      hand1 == Hand.Scissors && hand2 == Hand.Rock
-    ) {
-      return Result.Loss;
-    } else {
-      revert("unreachable!");
-    }
   }
 }
