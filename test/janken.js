@@ -10,13 +10,6 @@ const HAND = {
   SCISSORS: 3,
 };
 
-const RESULT = {
-  NULL: 0,
-  DRAW: 1,
-  WIN: 2,
-  LOSS: 3,
-};
-
 let instance;
 const { soliditySha3, toBN, toWei } = web3.utils;
 
