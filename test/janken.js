@@ -265,27 +265,5 @@ contract('Janken', (accounts) => {
         });
       });
     });
-
-    describe('startSolo', () => {
-      beforeEach(deploy);
-
-      it('should return the code of draw', async () => {
-        const result = await instance.startSolo.call(HAND.ROCK);
-
-        assert.equal(result, RESULT.DRAW);
-      });
-
-      it('should return the code of loss', async () => {
-        const result = await instance.startSolo.call(HAND.SCISSORS);
-
-        assert.equal(result, RESULT.LOSS);
-      });
-
-      it('should return the code of win', async () => {
-        const result = await instance.startSolo.call(HAND.PAPER);
-
-        assert.equal(result, RESULT.WIN);
-      });
-    });
   });
 });

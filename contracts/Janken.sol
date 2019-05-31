@@ -30,10 +30,6 @@ contract Janken {
   constructor() public payable {}
   function () external payable {}
 
-  function startSolo(Hand hand) public pure returns (Result) {
-    return judge(hand, Hand.Rock);
-  }
-
   function createGame(bytes32 encryptedHand) public payable {
     require(msg.value > 0, "deposit must be greater than 0");
 
