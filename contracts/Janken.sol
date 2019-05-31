@@ -17,7 +17,6 @@ contract Janken {
     Hand opponentDecryptedHand;
     bytes32 ownerSecret;
     bytes32 opponentSecret;
-    Result result;
     mapping (address => uint) allowedWithdrawal;
   }
   enum GameStatus {
