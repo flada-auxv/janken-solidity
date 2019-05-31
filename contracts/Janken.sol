@@ -21,8 +21,8 @@ contract Janken {
   }
   enum GameStatus {
     DoesNotExist,
-    GameCreated,
-    GameStarted,
+    Created,
+    Started,
     AcceptingWithdrawal,
     Finished
   }
@@ -42,25 +42,25 @@ contract Janken {
     game.host = msg.sender;
     game.deposit = msg.value;
     game.hostEncryptedHand = encryptedHand;
-    game.status = GameStatus.GameCreated;
+    game.status = GameStatus.Created;
   }
 
   function joinGame(uint id, bytes32 encryptedHand) public payable {
     Game storage game = games[id];
 
     require(game.status != GameStatus.DoesNotExist, "the game does not found");
-    gameStatusShouldBe(game, GameStatus.GameCreated);
+    gameStatusShouldBe(game, GameStatus.Created);
     require(msg.value == game.deposit, "deposit amount must be equal onwer's amount");
 
     game.opponent = msg.sender;
     game.opponentEncryptedHand = encryptedHand;
-    game.status = GameStatus.GameStarted;
+    game.status = GameStatus.Started;
   }
 
   function revealHand(uint id, uint n, bytes32 secret) public {
     Game storage game = games[id];
 
-    gameStatusShouldBe(game, GameStatus.GameStarted);
+    gameStatusShouldBe(game, GameStatus.Started);
     restrictAccessOnlyParticipants(game);
 
     Hand hand = convertIntToHand(n);
