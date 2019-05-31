@@ -1,11 +1,6 @@
 pragma solidity >=0.5.0 <0.6.0;
 
 contract Janken {
-    enum Hand { Null, Rock, Paper, Scissors }
-    enum Result { Null, Draw, Win, Loss }
-
-    uint public gameId = 0;
-    mapping (uint => Game) public games;
     struct Game {
         GameStatus status;
         uint deposit;
@@ -19,6 +14,9 @@ contract Janken {
         bytes32 opponentSecret;
         mapping (address => uint) allowedWithdrawal;
     }
+
+    enum Hand { Null, Rock, Paper, Scissors }
+    enum Result { Null, Draw, Win, Loss }
     enum GameStatus {
         DoesNotExist,
         Created,
@@ -26,6 +24,9 @@ contract Janken {
         AcceptingWithdrawal,
         Finished
     }
+
+    uint public gameId = 0;
+    mapping (uint => Game) public games;
 
     constructor() public payable {}
     function () external payable {}
