@@ -44,7 +44,7 @@ contract Janken {
   function joinGame(uint id, bytes32 encryptedHand) public payable {
     Game storage game = games[id];
 
-    require(game.status != GameStatus.DoesNotExist, "the game does not found");
+    require(game.status != GameStatus.DoesNotExist, "the game does not exist");
     gameStatusShouldBe(game, GameStatus.Created);
     require(msg.value == game.deposit, "deposit amount must be equal onwer's amount");
 
