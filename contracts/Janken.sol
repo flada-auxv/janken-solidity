@@ -9,13 +9,13 @@ contract Janken {
   struct Game {
     GameStatus status;
     uint requiredDeposit;
-    address owner;
+    address host;
     address opponent;
-    bytes32 ownerEncryptedHand;
+    bytes32 hostEncryptedHand;
     bytes32 opponentEncryptedHand;
-    Hand ownerDecryptedHand;
+    Hand hostDecryptedHand;
     Hand opponentDecryptedHand;
-    bytes32 ownerSecret;
+    bytes32 hostSecret;
     bytes32 opponentSecret;
     mapping (address => uint) allowedWithdrawal;
   }
@@ -39,9 +39,9 @@ contract Janken {
 
     gameId += 1;
     Game storage game = games[gameId];
-    game.owner = msg.sender;
+    game.host = msg.sender;
     game.requiredDeposit = msg.value;
-    game.ownerEncryptedHand = encryptedHand;
+    game.hostEncryptedHand = encryptedHand;
     game.status = GameStatus.GameCreated;
   }
 
@@ -66,24 +66,24 @@ contract Janken {
     Hand hand = convertIntToHand(n);
     bytes32 eHand = encryptedHand(n, secret);
 
-    if (msg.sender == game.owner) {
-      require(game.ownerEncryptedHand == eHand, "commit verification is failed");
-      game.ownerDecryptedHand = hand;
-      game.ownerSecret = secret;
+    if (msg.sender == game.host) {
+      require(game.hostEncryptedHand == eHand, "commit verification is failed");
+      game.hostDecryptedHand = hand;
+      game.hostSecret = secret;
     } else if (msg.sender == game.opponent) {
       require(game.opponentEncryptedHand == eHand, "commit verification is failed");
       game.opponentDecryptedHand = hand;
       game.opponentSecret = secret;
     }
 
-    if (game.ownerDecryptedHand != Hand.Null && game.opponentDecryptedHand != Hand.Null) {
-      Result result = judge(game.ownerDecryptedHand, game.opponentDecryptedHand);
+    if (game.hostDecryptedHand != Hand.Null && game.opponentDecryptedHand != Hand.Null) {
+      Result result = judge(game.hostDecryptedHand, game.opponentDecryptedHand);
       if (result == Result.Win) {
-        game.allowedWithdrawal[game.owner] = game.requiredDeposit * 2;
+        game.allowedWithdrawal[game.host] = game.requiredDeposit * 2;
       } else if (result == Result.Loss) {
         game.allowedWithdrawal[game.opponent] = game.requiredDeposit * 2;
       } else if (result == Result.Draw) {
-        game.allowedWithdrawal[game.owner] = game.requiredDeposit;
+        game.allowedWithdrawal[game.host] = game.requiredDeposit;
         game.allowedWithdrawal[game.opponent] = game.requiredDeposit;
       } else {
         revert("unreachable!");
@@ -112,7 +112,7 @@ contract Janken {
   }
 
   function restrictAccessOnlyParticipants(Game memory game) private view {
-    require(msg.sender == game.owner || msg.sender == game.opponent, "forbidden");
+    require(msg.sender == game.host || msg.sender == game.opponent, "forbidden");
   }
 
   function convertIntToHand(uint n) private pure returns (Hand) {

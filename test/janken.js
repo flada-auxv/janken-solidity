@@ -50,14 +50,14 @@ contract('Janken', (accounts) => {
         assert.equal(1, await instance.gameId.call());
 
         const firstGame = await instance.games.call(1);
-        assert.equal(accounts[0], firstGame.owner);
+        assert.equal(accounts[0], firstGame.host);
         assert.equal(10, firstGame.requiredDeposit);
 
         await instance.createGame(encryptedHand, { from: accounts[1], value: 42 });
         assert.equal(2, await instance.gameId.call());
 
         const secondGame = await instance.games.call(2);
-        assert.equal(accounts[1], secondGame.owner);
+        assert.equal(accounts[1], secondGame.host);
         assert.equal(42, secondGame.requiredDeposit);
       });
     });
@@ -114,14 +114,14 @@ contract('Janken', (accounts) => {
     });
 
     describe('commit verification and save its result', () => {
-      context('when msg.sender is game owner', () => {
-        it('should update owner side attributes of the game', async () => {
+      context('when msg.sender is the game host', () => {
+        it('should update host side attributes of the game', async () => {
           const secret = soliditySha3('vanilla salt');
           await instance.revealHand(1, HAND.ROCK, secret, { from: accounts[0] });
 
           const game = await instance.games.call(1);
-          assert.equal(HAND.ROCK, game.ownerDecryptedHand);
-          assert.equal(secret, game.ownerSecret);
+          assert.equal(HAND.ROCK, game.hostDecryptedHand);
+          assert.equal(secret, game.hostSecret);
         });
       });
 
@@ -159,7 +159,7 @@ contract('Janken', (accounts) => {
     });
 
     describe('save the result', () => {
-      context('when owner wins', () => {
+      context('when the host wins', () => {
         it('should update result of the game', async () => {
           await instance.revealHand(1, HAND.ROCK, soliditySha3('vanilla salt'), { from: accounts[0] });
           await instance.revealHand(1, HAND.SCISSORS, soliditySha3('orange'), { from: accounts[1] });
@@ -169,7 +169,7 @@ contract('Janken', (accounts) => {
         });
       });
 
-      context('when owner loses', () => {
+      context('when the host loses', () => {
         it('should update result of the game', async () => {
           await instance.createGame(encryptedHandScissors, { from: accounts[0], value: 10 });
           await instance.joinGame(2, encryptedHandRock, { from: accounts[1], value: 10 });
@@ -181,7 +181,7 @@ contract('Janken', (accounts) => {
         });
       });
 
-      context('when result is draw', () => {
+      context('when the game ends in a draw', () => {
         it('should update result of the game', async () => {
           await instance.createGame(createEncryptedHash(HAND.ROCK, 'tiger'), { from: accounts[0], value: 10 });
           await instance.joinGame(2, createEncryptedHash(HAND.ROCK, 'dragon'), { from: accounts[1], value: 10 });
@@ -195,7 +195,7 @@ contract('Janken', (accounts) => {
     });
 
     describe('withdraw', () => {
-      context('when owner wins', () => {
+      context('when the host wins', () => {
         beforeEach(async () => {
           await deploy();
           await instance.createGame(encryptedHandRock, { from: accounts[0], value: toWei('0.015') });
@@ -204,7 +204,7 @@ contract('Janken', (accounts) => {
           await instance.revealHand(1, HAND.ROCK, soliditySha3('vanilla salt'), { from: accounts[0] });
         });
 
-        context('when owner tries to withdraw', () => {
+        context('when the host tries to withdraw', () => {
           it('should withdraw all deposits', async () => {
             const beforeBalance = toBN(await web3.eth.getBalance(accounts[0]));
             const receipt = await instance.withdraw(1, { from: accounts[0] });
@@ -218,9 +218,9 @@ contract('Janken', (accounts) => {
           });
         });
 
-        context('when owner tries to withdraw twice', async () => {
+        context('when the host tries to withdraw twice', async () => {
           it('should revert', async () => {
-            // the contract receive enough eth to be withdrawn from the owner twice
+            // the contract receive enough eth to be withdrawn from the host twice
             instance.sendTransaction({ from: accounts[1], value: toWei('0.03') });
 
             const beforeBalance = toBN(await web3.eth.getBalance(accounts[0]));
@@ -259,7 +259,7 @@ contract('Janken', (accounts) => {
           await instance.revealHand(1, HAND.ROCK, soliditySha3('vanilla salt'), { from: accounts[1] });
         });
 
-        context('when owner tries to withdraw', () => {
+        context('when host tries to withdraw', () => {
           it('should withdraw deposits the only amount of deposited by myself', async () => {
           });
         });
