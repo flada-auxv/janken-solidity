@@ -46,7 +46,7 @@ contract Janken {
 
     require(game.status != GameStatus.DoesNotExist, "the game does not exist");
     gameStatusShouldBe(game, GameStatus.Created);
-    require(msg.value == game.deposit, "deposit amount must be equal onwer's amount");
+    require(msg.value == game.deposit, "deposit amount must be equal the game host's amount");
 
     game.opponent = msg.sender;
     game.opponentEncryptedHand = encryptedHand;
