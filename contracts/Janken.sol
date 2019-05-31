@@ -3,11 +3,11 @@ pragma solidity >=0.5.0 <0.6.0;
 import "openzeppelin-solidity/contracts/math/SafeMath.sol";
 
 contract Janken {
-    using SafeMath for uint;
+    using SafeMath for uint256;
 
     struct Game {
         GameStatus status;
-        uint deposit;
+        uint256 deposit;
         address host;
         address opponent;
         bytes32 hostEncryptedHand;
@@ -16,7 +16,7 @@ contract Janken {
         Hand opponentDecryptedHand;
         bytes32 hostSecret;
         bytes32 opponentSecret;
-        mapping (address => uint) allowedWithdrawal;
+        mapping (address => uint256) allowedWithdrawal;
     }
 
     enum Hand { Null, Rock, Paper, Scissors }
@@ -29,8 +29,8 @@ contract Janken {
         Finished
     }
 
-    uint public gameId = 0;
-    mapping (uint => Game) public games;
+    uint256 public gameId = 0;
+    mapping (uint256 => Game) public games;
 
     constructor() public payable {}
     function () external payable {}
@@ -46,7 +46,7 @@ contract Janken {
         game.status = GameStatus.Created;
     }
 
-    function joinGame(uint id, bytes32 encryptedHand) public payable {
+    function joinGame(uint256 id, bytes32 encryptedHand) public payable {
         Game storage game = games[id];
 
         require(game.status != GameStatus.DoesNotExist, "the game does not exist");
@@ -58,7 +58,7 @@ contract Janken {
         game.status = GameStatus.Started;
     }
 
-    function revealHand(uint id, uint n, bytes32 secret) public {
+    function revealHand(uint256 id, uint256 n, bytes32 secret) public {
         Game storage game = games[id];
 
         gameStatusShouldBe(game, GameStatus.Started);
@@ -93,13 +93,13 @@ contract Janken {
         }
     }
 
-    function withdraw(uint id) public payable {
+    function withdraw(uint256 id) public payable {
         Game storage game = games[id];
 
         gameStatusShouldBe(game, GameStatus.AcceptingWithdrawal);
         restrictAccessOnlyParticipants(game);
 
-        uint allowedAmount = game.allowedWithdrawal[msg.sender];
+        uint256 allowedAmount = game.allowedWithdrawal[msg.sender];
         if (allowedAmount != 0) {
             game.allowedWithdrawal[msg.sender] = 0;
             msg.sender.transfer(allowedAmount);
@@ -108,7 +108,7 @@ contract Janken {
         }
     }
 
-    function getAllowedWithdrawalAmount(uint id, address addr) public view returns (uint) {
+    function getAllowedWithdrawalAmount(uint256 id, address addr) public view returns (uint256) {
         Game storage game = games[id];
         return game.allowedWithdrawal[addr];
     }
@@ -141,7 +141,7 @@ contract Janken {
         require(msg.sender == game.host || msg.sender == game.opponent, "forbidden");
     }
 
-    function convertIntToHand(uint n) private pure returns (Hand) {
+    function convertIntToHand(uint256 n) private pure returns (Hand) {
         if (n == 0) {
             return Hand.Null;
         } else if (n == 1) {
@@ -155,7 +155,7 @@ contract Janken {
         }
     }
 
-    function encryptedHand(uint n, bytes32 secret) private pure returns (bytes32) {
+    function encryptedHand(uint256 n, bytes32 secret) private pure returns (bytes32) {
         return keccak256(abi.encodePacked(n, secret));
     }
 }
