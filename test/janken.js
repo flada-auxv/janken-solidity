@@ -84,7 +84,7 @@ contract('Janken', (accounts) => {
       it('should revert', async () => {
         await truffleAssert.reverts(
           instance.joinGame(42, encryptedHand, { from: accounts[1], value: 10 }),
-          'the game does not found',
+          'the game does not exist',
         );
       });
     });
@@ -93,7 +93,7 @@ contract('Janken', (accounts) => {
       it('should revert', async () => {
         await truffleAssert.reverts(
           instance.joinGame(1, encryptedHand, { from: accounts[1], value: 5 }),
-          'deposit amount must be equal onwer\'s amount',
+          'deposit amount must be equal the game host\'s amount',
         );
       });
     });
