@@ -18,7 +18,7 @@ contract Janken {
     bytes32 ownerSecret;
     bytes32 opponentSecret;
     Result result;
-    address winner;
+    mapping (address => uint) allowedWithdrawal;
   }
   enum GameStatus {
     DoesNotExist,
@@ -80,28 +80,29 @@ contract Janken {
     if (game.ownerDecryptedHand != Hand.Null && game.opponentDecryptedHand != Hand.Null) {
       Result result = judge(game.ownerDecryptedHand, game.opponentDecryptedHand);
       if (result == Result.Win) {
-        game.winner = game.owner;
+        game.allowedWithdrawal[game.owner] = game.requiredDeposit * 2;
       } else if (result == Result.Loss) {
-        game.winner = game.opponent;
+        game.allowedWithdrawal[game.opponent] = game.requiredDeposit * 2;
       } else if (result == Result.Draw) {
-        game.winner = address(0);
+        game.allowedWithdrawal[game.owner] = game.requiredDeposit;
+        game.allowedWithdrawal[game.opponent] = game.requiredDeposit;
       } else {
-        revert("unreachable");
+        revert("unreachable!");
       }
       game.status = GameStatus.AcceptingWithdrawal;
     }
   }
 
   function withdraw(uint id) public payable {
-    Game memory game = games[id];
+    Game storage game = games[id];
 
     gameStatusShouldBe(game, GameStatus.AcceptingWithdrawal);
     restrictAccessOnlyParticipants(game);
 
-    if (game.winner == msg.sender) {
-      msg.sender.transfer(game.requiredDeposit * 2);
-    } else if (game.winner == address(0)) {
-      msg.sender.transfer(game.requiredDeposit);
+    uint allowedAmount = game.allowedWithdrawal[msg.sender];
+    if (allowedAmount != 0) {
+      game.allowedWithdrawal[msg.sender] = 0;
+      msg.sender.transfer(allowedAmount);
     } else {
       revert("you aren't eligible to withdraw");
     }
@@ -131,6 +132,11 @@ contract Janken {
 
   function encryptedHand(uint n, bytes32 secret) private pure returns (bytes32) {
     return keccak256(abi.encodePacked(n, secret));
+  }
+
+  function getAllowedWithdrawalAmount(uint id, address addr) public view returns (uint) {
+    Game storage game = games[id];
+    return game.allowedWithdrawal[addr];
   }
 
   function judge(Hand hand1, Hand hand2) public pure returns (Result) {

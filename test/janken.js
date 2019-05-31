@@ -164,8 +164,8 @@ contract('Janken', (accounts) => {
           await instance.revealHand(1, HAND.ROCK, soliditySha3('vanilla salt'), { from: accounts[0] });
           await instance.revealHand(1, HAND.SCISSORS, soliditySha3('orange'), { from: accounts[1] });
 
-          const game = await instance.games.call(1);
-          assert.equal(accounts[0], game.winner);
+          assert.equal(20, await instance.getAllowedWithdrawalAmount.call(1, accounts[0]));
+          assert.equal(0, await instance.getAllowedWithdrawalAmount.call(1, accounts[1]));
         });
       });
 
@@ -176,8 +176,8 @@ contract('Janken', (accounts) => {
           await instance.revealHand(2, HAND.SCISSORS, soliditySha3('orange'), { from: accounts[0] });
           await instance.revealHand(2, HAND.ROCK, soliditySha3('vanilla salt'), { from: accounts[1] });
 
-          const game = await instance.games.call(2);
-          assert.equal(accounts[1], game.winner);
+          assert.equal(0, await instance.getAllowedWithdrawalAmount.call(2, accounts[0]));
+          assert.equal(20, await instance.getAllowedWithdrawalAmount.call(2, accounts[1]));
         });
       });
 
@@ -188,8 +188,8 @@ contract('Janken', (accounts) => {
           await instance.revealHand(2, HAND.ROCK, soliditySha3('dragon'), { from: accounts[1] });
           await instance.revealHand(2, HAND.ROCK, soliditySha3('tiger'), { from: accounts[0] });
 
-          const game = await instance.games.call(2);
-          assert.equal(0, game.winner);
+          assert.equal(10, await instance.getAllowedWithdrawalAmount.call(2, accounts[0]));
+          assert.equal(10, await instance.getAllowedWithdrawalAmount.call(2, accounts[1]));
         });
       });
     });
@@ -236,7 +236,7 @@ contract('Janken', (accounts) => {
             // FIXME: ooooops, this isn't passed!!!
             await truffleAssert.reverts(
               instance.withdraw(1, { from: accounts[0] }),
-              'commit verification is failed',
+              'you aren\'t eligible to withdraw',
             );
           });
         });
