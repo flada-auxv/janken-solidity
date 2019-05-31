@@ -246,14 +246,33 @@ contract('Janken', (accounts) => {
       context('when the game ends in a draw', () => {
         beforeEach(async () => {
           await deploy();
-          await instance.createGame(encryptedHandRock, { from: accounts[0], value: toWei('1') });
-          await instance.joinGame(1, encryptedHandRock, { from: accounts[1], value: toWei('1') });
+          await instance.createGame(encryptedHandRock, { from: accounts[0], value: toWei('0.015') });
+          await instance.joinGame(1, encryptedHandRock, { from: accounts[1], value: toWei('0.015') });
           await instance.revealHand(1, HAND.ROCK, soliditySha3('vanilla salt'), { from: accounts[0] });
           await instance.revealHand(1, HAND.ROCK, soliditySha3('vanilla salt'), { from: accounts[1] });
         });
 
-        context('when host tries to withdraw', () => {
+        context('when the host tries to withdraw', () => {
           it('should withdraw deposits the only amount of deposited by myself', async () => {
+            const beforeHostBalance = toBN(await web3.eth.getBalance(accounts[0]));
+            const hostReceipt = await instance.withdraw(1, { from: accounts[0] });
+            const afterHostBalance = toBN(await web3.eth.getBalance(accounts[0]));
+
+            const hostFee = await calcFeeFromTxReceipt(hostReceipt);
+            const hostDelta = afterHostBalance.sub(beforeHostBalance).toString(10);
+            const hostDeltaWithoutFee = toBN(toWei('0.015'));
+
+            assert.equal(hostDelta, hostDeltaWithoutFee.sub(hostFee).toString(10));
+
+            const beforeOpponentBalance = toBN(await web3.eth.getBalance(accounts[1]));
+            const opponentReceipt = await instance.withdraw(1, { from: accounts[1] });
+            const afterOpponentBalance = toBN(await web3.eth.getBalance(accounts[1]));
+
+            const opponentFee = await calcFeeFromTxReceipt(opponentReceipt);
+            const opponentDelta = afterOpponentBalance.sub(beforeOpponentBalance).toString(10);
+            const opponentDeltaWithoutFee = toBN(toWei('0.015'));
+
+            assert.equal(opponentDelta, opponentDeltaWithoutFee.sub(opponentFee).toString(10));
           });
         });
       });
