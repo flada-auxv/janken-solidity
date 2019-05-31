@@ -19,7 +19,9 @@
     "url": "https://github.com/flada-auxv/janken-solidity/issues"
   },
   "homepage": "https://github.com/flada-auxv/janken-solidity#readme",
-  "dependencies": {},
+  "dependencies": {
+    "openzeppelin-solidity": "^2.3.0"
+  },
   "devDependencies": {
     "eslint": "^5.16.0",
     "eslint-config-airbnb-base": "^13.1.0",

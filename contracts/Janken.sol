@@ -1,6 +1,10 @@
 pragma solidity >=0.5.0 <0.6.0;
 
+import "openzeppelin-solidity/contracts/math/SafeMath.sol";
+
 contract Janken {
+    using SafeMath for uint;
+
     struct Game {
         GameStatus status;
         uint deposit;
@@ -76,9 +80,9 @@ contract Janken {
         if (game.hostDecryptedHand != Hand.Null && game.opponentDecryptedHand != Hand.Null) {
             Result result = judge(game.hostDecryptedHand, game.opponentDecryptedHand);
             if (result == Result.Win) {
-                game.allowedWithdrawal[game.host] = game.deposit * 2;
+                game.allowedWithdrawal[game.host] = game.deposit.mul(2);
             } else if (result == Result.Loss) {
-                game.allowedWithdrawal[game.opponent] = game.deposit * 2;
+                game.allowedWithdrawal[game.opponent] = game.deposit.mul(2);
             } else if (result == Result.Draw) {
                 game.allowedWithdrawal[game.host] = game.deposit;
                 game.allowedWithdrawal[game.opponent] = game.deposit;
