@@ -32,7 +32,7 @@ contract Janken {
     }
 
     uint256 public gameId = 0;
-    uint256 public defaultWaitingWindow = 60 * 60;
+    uint256 public defaultWaitingWindow = 1 days;
     mapping (uint256 => Game) public games;
 
     constructor() public payable {}
