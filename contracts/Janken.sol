@@ -16,6 +16,8 @@ contract Janken {
         Hand opponentDecryptedHand;
         bytes32 hostSecret;
         bytes32 opponentSecret;
+        uint256 commitmentDeadline;
+        uint256 revelationDeadline;
         mapping (address => uint256) allowedWithdrawal;
     }
 
@@ -30,12 +32,17 @@ contract Janken {
     }
 
     uint256 public gameId = 0;
+    uint256 public defaultWaitingWindow = 60 * 60;
     mapping (uint256 => Game) public games;
 
     constructor() public payable {}
     function () external payable {}
 
     function createGame(bytes32 encryptedHand) public payable {
+        createGame(encryptedHand, defaultWaitingWindow);
+    }
+
+    function createGame(bytes32 encryptedHand, uint256 waitingWindow) public payable {
         require(msg.value > 0, "deposit must be greater than 0");
 
         gameId += 1;
@@ -43,18 +50,43 @@ contract Janken {
         game.host = msg.sender;
         game.deposit = msg.value;
         game.hostEncryptedHand = encryptedHand;
+
+        uint256 window;
+        if (waitingWindow != 0) {
+            window = waitingWindow;
+        } else {
+            window = defaultWaitingWindow;
+        }
+        // solium-disable-next-line security/no-block-members
+        game.commitmentDeadline = block.timestamp.add(window);
+
         game.status = GameStatus.Created;
     }
 
     function joinGame(uint256 id, bytes32 encryptedHand) public payable {
+        joinGame(id, encryptedHand, defaultWaitingWindow);
+    }
+
+    function joinGame(uint256 id, bytes32 encryptedHand, uint256 waitingWindow) public payable {
         Game storage game = games[id];
 
         require(game.status != GameStatus.DoesNotExist, "the game does not exist");
         gameStatusShouldBe(game, GameStatus.Created);
         require(msg.value == game.deposit, "deposit amount must be equal the game host's amount");
+        require(hasNotOver(game.commitmentDeadline), "the game was closed for participation");
 
         game.opponent = msg.sender;
         game.opponentEncryptedHand = encryptedHand;
+
+        uint256 window;
+        if (waitingWindow != 0) {
+            window = waitingWindow;
+        } else {
+            window = defaultWaitingWindow;
+        }
+        // solium-disable-next-line security/no-block-members
+        game.revelationDeadline = block.timestamp.add(window);
+
         game.status = GameStatus.Started;
     }
 
@@ -108,6 +140,22 @@ contract Janken {
         }
     }
 
+    function rescue(uint256 id) public {
+        Game memory game = games[id];
+
+        restrictAccessOnlyParticipants(game);
+
+        if (game.status == GameStatus.Created && msg.sender == game.host && hasOver(game.commitmentDeadline)) {
+            // TODO: do not rescue twice
+            msg.sender.transfer(game.deposit);
+        } else if (game.status == GameStatus.Started && isRevealed(game, msg.sender) && hasOver(game.revelationDeadline)) {
+            // TODO: do not rescue twice
+            msg.sender.transfer(game.deposit);
+        } else {
+            revert("invalid rescue");
+        }
+    }
+
     function getAllowedWithdrawalAmount(uint256 id, address addr) public view returns (uint256) {
         Game storage game = games[id];
         return game.allowedWithdrawal[addr];
@@ -130,6 +178,25 @@ contract Janken {
             return Result.Loss;
         } else {
             revert("unreachable!");
+        }
+    }
+
+    function hasOver(uint256 time) private view returns(bool) {
+        // solium-disable-next-line security/no-block-members
+        return block.timestamp > time;
+    }
+
+    function hasNotOver(uint256 time) private view returns(bool) {
+        return !hasOver(time);
+    }
+
+    function isRevealed(Game memory game, address addr) private view returns(bool) {
+        if (addr == game.host) {
+            return game.hostDecryptedHand != Hand.Null;
+        } else if (addr == game.opponent) {
+            return game.opponentDecryptedHand != Hand.Null;
+        } else {
+            revert("Unknown player");
         }
     }
 
