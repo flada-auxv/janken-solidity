@@ -2,6 +2,7 @@
 
 const Janken = artifacts.require('Janken');
 const truffleAssert = require('truffle-assertions');
+const { time } = require('openzeppelin-test-helpers');
 
 const HAND = {
   NULL: 0,
@@ -287,6 +288,58 @@ contract('Janken', (accounts) => {
 
           assert.equal(opponentDelta, opponentDeltaWithoutFee.sub(opponentFee).toString(10));
         });
+      });
+    });
+  });
+
+  describe('rescue', () => {
+    context('the game does not exist yet', () => {
+      beforeEach(deploy);
+
+      it('should revert', async () => {
+        await truffleAssert.reverts(
+          instance.rescue(42, { from: accounts[0] }),
+          'forbidden',
+        );
+      });
+    });
+
+    context('the commitment deadline of the game is still open', () => {
+      beforeEach(async () => {
+        await deploy();
+        await instance.createGame(encryptedHandRock, { from: accounts[0], value: toWei('0.015') });
+      });
+
+      it('should revert', async () => {
+        await truffleAssert.reverts(
+          instance.rescue(1, { from: accounts[0] }),
+          'invalid rescue',
+        );
+      });
+    });
+
+    context.skip('the commitment deadline of the game is over', () => {
+      beforeEach(async () => {
+        await deploy();
+        await instance.createGame(encryptedHandRock, { from: accounts[0], value: toWei('0.015') });
+        time.increase(time.duration.days(3));
+      });
+
+      it('', async () => {
+        const beforeBalance = toBN(await web3.eth.getBalance(accounts[0]));
+        const receipt = await instance.rescue(1, { from: accounts[0] });
+        const afterBalance = toBN(await web3.eth.getBalance(accounts[0]));
+
+        const fee = await calcFeeFromTxReceipt(receipt);
+        const delta = afterBalance.sub(beforeBalance).toString(10);
+        const deltaWithoutFee = toBN(toWei('0.015'));
+
+        assert.equal(delta, deltaWithoutFee.sub(fee).toString(10));
+
+        await truffleAssert.reverts(
+          instance.rescue(1, { from: accounts[0] }),
+          'invalid rescue',
+        );
       });
     });
   });
