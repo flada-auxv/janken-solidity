@@ -63,6 +63,29 @@ contract('Janken', (accounts) => {
         );
       });
     });
+
+    describe('waitingWindow', () => {
+      context('not specify as a function argument', () => {
+        it('sets commitmentDeadline in 1 day', async () => {
+          const timeAtSendingTx = Math.floor(Date.now() / 1000);
+          await instance.methods['createGame(bytes32)'](encryptedHand, { from: accounts[0], value: 10 });
+
+          const game = await instance.games.call(1);
+          assert.closeTo(timeAtSendingTx + (60 * 60 * 24), game.commitmentDeadline.toNumber(), 3);
+        });
+      });
+
+      context('specify in 2 hours', () => {
+        it('sets commitmentDeadline in 2 hours', async () => {
+          const timeAtSendingTx = Math.floor(Date.now() / 1000);
+          const deltaTwoHours = (60 * 60 * 2);
+          await instance.methods['createGame(bytes32,uint256)'](encryptedHand, deltaTwoHours, { from: accounts[0], value: 10 });
+
+          const game = await instance.games.call(1);
+          assert.closeTo(timeAtSendingTx + deltaTwoHours, game.commitmentDeadline.toNumber(), 3);
+        });
+      });
+    });
   });
 
   describe('joinGame', () => {
