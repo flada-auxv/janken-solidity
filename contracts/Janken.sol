@@ -93,7 +93,7 @@ contract Janken {
         }
     }
 
-    function withdraw(uint256 id) public payable {
+    function withdraw(uint256 id) public {
         Game storage game = games[id];
 
         gameStatusShouldBe(game, GameStatus.AcceptingWithdrawal);
