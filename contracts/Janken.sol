@@ -133,12 +133,12 @@ contract Janken {
         }
     }
 
-    function gameStatusShouldBe(Game memory game, GameStatus status) private pure {
-        require(game.status == status, "status is invalid");
-    }
-
     function restrictAccessOnlyParticipants(Game memory game) private view {
         require(msg.sender == game.host || msg.sender == game.opponent, "forbidden");
+    }
+
+    function gameStatusShouldBe(Game memory game, GameStatus status) private pure {
+        require(game.status == status, "status is invalid");
     }
 
     function convertIntToHand(uint256 n) private pure returns (Hand) {
