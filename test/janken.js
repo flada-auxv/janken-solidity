@@ -39,14 +39,14 @@ contract('Janken', (accounts) => {
 
     context('with sending a few ETH', () => {
       it('should create new game and save deposit amount', async () => {
-        await instance.methods['createGame(bytes32)'](encryptedHand, { from: accounts[0], value: 10 });
+        await instance.createGame(encryptedHand, { from: accounts[0], value: 10 });
         assert.equal(1, await instance.gameId.call());
 
         const firstGame = await instance.games.call(1);
         assert.equal(accounts[0], firstGame.host);
         assert.equal(10, firstGame.deposit);
 
-        await instance.methods['createGame(bytes32)'](encryptedHand, { from: accounts[1], value: 42 });
+        await instance.createGame(encryptedHand, { from: accounts[1], value: 42 });
         assert.equal(2, await instance.gameId.call());
 
         const secondGame = await instance.games.call(2);
@@ -58,7 +58,7 @@ contract('Janken', (accounts) => {
     context('without sending any ETH', () => {
       it('should revert', async () => {
         await truffleAssert.reverts(
-          instance.methods['createGame(bytes32)'](encryptedHand),
+          instance.createGame(encryptedHand),
           'deposit must be greater than 0',
         );
       });
@@ -68,21 +68,10 @@ contract('Janken', (accounts) => {
       context('not specify as a function argument', () => {
         it('sets commitmentDeadline in 1 day', async () => {
           const timeAtSendingTx = Math.floor(Date.now() / 1000);
-          await instance.methods['createGame(bytes32)'](encryptedHand, { from: accounts[0], value: 10 });
+          await instance.createGame(encryptedHand, { from: accounts[0], value: 10 });
 
           const game = await instance.games.call(1);
           assert.closeTo(timeAtSendingTx + (60 * 60 * 24), game.commitmentDeadline.toNumber(), 3);
-        });
-      });
-
-      context('specify in 2 hours', () => {
-        it('sets commitmentDeadline in 2 hours', async () => {
-          const timeAtSendingTx = Math.floor(Date.now() / 1000);
-          const deltaTwoHours = (60 * 60 * 2);
-          await instance.methods['createGame(bytes32,uint256)'](encryptedHand, deltaTwoHours, { from: accounts[0], value: 10 });
-
-          const game = await instance.games.call(1);
-          assert.closeTo(timeAtSendingTx + deltaTwoHours, game.commitmentDeadline.toNumber(), 3);
         });
       });
     });
@@ -91,12 +80,12 @@ contract('Janken', (accounts) => {
   describe('joinGame', () => {
     beforeEach(async () => {
       await deploy();
-      await instance.methods['createGame(bytes32)'](encryptedHand, { from: accounts[0], value: 10 });
+      await instance.createGame(encryptedHand, { from: accounts[0], value: 10 });
     });
 
     context('when depositing the same amount of deposit', () => {
       it('should update the game', async () => {
-        await instance.methods['joinGame(uint256,bytes32)'](1, encryptedHand, { from: accounts[1], value: 10 });
+        await instance.joinGame(1, encryptedHand, { from: accounts[1], value: 10 });
 
         const game = await instance.games.call(1);
         assert.equal(accounts[1], game.opponent);
@@ -106,7 +95,7 @@ contract('Janken', (accounts) => {
     context('when specified wrong gameId', () => {
       it('should revert', async () => {
         await truffleAssert.reverts(
-          instance.methods['joinGame(uint256,bytes32)'](42, encryptedHand, { from: accounts[1], value: 10 }),
+          instance.joinGame(42, encryptedHand, { from: accounts[1], value: 10 }),
           'the game does not exist',
         );
       });
@@ -115,7 +104,7 @@ contract('Janken', (accounts) => {
     context('when depositing the not same amount of deposit', () => {
       it('should revert', async () => {
         await truffleAssert.reverts(
-          instance.methods['joinGame(uint256,bytes32)'](1, encryptedHand, { from: accounts[1], value: 5 }),
+          instance.joinGame(1, encryptedHand, { from: accounts[1], value: 5 }),
           'deposit amount must be equal the game host\'s amount',
         );
       });
@@ -125,8 +114,8 @@ contract('Janken', (accounts) => {
   describe('revealHand', () => {
     beforeEach(async () => {
       await deploy();
-      await instance.methods['createGame(bytes32)'](encryptedHandRock, { from: accounts[0], value: 10 });
-      await instance.methods['joinGame(uint256,bytes32)'](1, encryptedHandScissors, { from: accounts[1], value: 10 });
+      await instance.createGame(encryptedHandRock, { from: accounts[0], value: 10 });
+      await instance.joinGame(1, encryptedHandScissors, { from: accounts[1], value: 10 });
     });
 
     describe('commit verification and save its result', () => {
@@ -187,8 +176,8 @@ contract('Janken', (accounts) => {
 
       context('when the host loses', () => {
         it('should update result of the game', async () => {
-          await instance.methods['createGame(bytes32)'](encryptedHandScissors, { from: accounts[0], value: 10 });
-          await instance.methods['joinGame(uint256,bytes32)'](2, encryptedHandRock, { from: accounts[1], value: 10 });
+          await instance.createGame(encryptedHandScissors, { from: accounts[0], value: 10 });
+          await instance.joinGame(2, encryptedHandRock, { from: accounts[1], value: 10 });
           await instance.revealHand(2, HAND.SCISSORS, soliditySha3('orange'), { from: accounts[0] });
           await instance.revealHand(2, HAND.ROCK, soliditySha3('vanilla salt'), { from: accounts[1] });
 
@@ -199,8 +188,8 @@ contract('Janken', (accounts) => {
 
       context('when the game ends in a draw', () => {
         it('should update result of the game', async () => {
-          await instance.methods['createGame(bytes32)'](createEncryptedHash(HAND.ROCK, 'tiger'), { from: accounts[0], value: 10 });
-          await instance.methods['joinGame(uint256,bytes32)'](2, createEncryptedHash(HAND.ROCK, 'dragon'), { from: accounts[1], value: 10 });
+          await instance.createGame(createEncryptedHash(HAND.ROCK, 'tiger'), { from: accounts[0], value: 10 });
+          await instance.joinGame(2, createEncryptedHash(HAND.ROCK, 'dragon'), { from: accounts[1], value: 10 });
           await instance.revealHand(2, HAND.ROCK, soliditySha3('dragon'), { from: accounts[1] });
           await instance.revealHand(2, HAND.ROCK, soliditySha3('tiger'), { from: accounts[0] });
 
@@ -215,8 +204,8 @@ contract('Janken', (accounts) => {
     context('when the host wins', () => {
       beforeEach(async () => {
         await deploy();
-        await instance.methods['createGame(bytes32)'](encryptedHandRock, { from: accounts[0], value: toWei('0.015') });
-        await instance.methods['joinGame(uint256,bytes32)'](1, encryptedHandScissors, { from: accounts[1], value: toWei('0.015') });
+        await instance.createGame(encryptedHandRock, { from: accounts[0], value: toWei('0.015') });
+        await instance.joinGame(1, encryptedHandScissors, { from: accounts[1], value: toWei('0.015') });
         await instance.revealHand(1, HAND.SCISSORS, soliditySha3('orange'), { from: accounts[1] });
         await instance.revealHand(1, HAND.ROCK, soliditySha3('vanilla salt'), { from: accounts[0] });
       });
@@ -270,8 +259,8 @@ contract('Janken', (accounts) => {
     context('when the game ends in a draw', () => {
       beforeEach(async () => {
         await deploy();
-        await instance.methods['createGame(bytes32)'](encryptedHandRock, { from: accounts[0], value: toWei('0.015') });
-        await instance.methods['joinGame(uint256,bytes32)'](1, encryptedHandRock, { from: accounts[1], value: toWei('0.015') });
+        await instance.createGame(encryptedHandRock, { from: accounts[0], value: toWei('0.015') });
+        await instance.joinGame(1, encryptedHandRock, { from: accounts[1], value: toWei('0.015') });
         await instance.revealHand(1, HAND.ROCK, soliditySha3('vanilla salt'), { from: accounts[0] });
         await instance.revealHand(1, HAND.ROCK, soliditySha3('vanilla salt'), { from: accounts[1] });
       });
