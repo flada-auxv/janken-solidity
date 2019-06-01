@@ -209,94 +209,94 @@ contract('Janken', (accounts) => {
         });
       });
     });
+  });
 
-    describe('withdraw', () => {
-      context('when the host wins', () => {
-        beforeEach(async () => {
-          await deploy();
-          await instance.methods['createGame(bytes32)'](encryptedHandRock, { from: accounts[0], value: toWei('0.015') });
-          await instance.methods['joinGame(uint256,bytes32)'](1, encryptedHandScissors, { from: accounts[1], value: toWei('0.015') });
-          await instance.revealHand(1, HAND.SCISSORS, soliditySha3('orange'), { from: accounts[1] });
-          await instance.revealHand(1, HAND.ROCK, soliditySha3('vanilla salt'), { from: accounts[0] });
-        });
+  describe('withdraw', () => {
+    context('when the host wins', () => {
+      beforeEach(async () => {
+        await deploy();
+        await instance.methods['createGame(bytes32)'](encryptedHandRock, { from: accounts[0], value: toWei('0.015') });
+        await instance.methods['joinGame(uint256,bytes32)'](1, encryptedHandScissors, { from: accounts[1], value: toWei('0.015') });
+        await instance.revealHand(1, HAND.SCISSORS, soliditySha3('orange'), { from: accounts[1] });
+        await instance.revealHand(1, HAND.ROCK, soliditySha3('vanilla salt'), { from: accounts[0] });
+      });
 
-        context('when the host tries to withdraw', () => {
-          it('should withdraw all deposits', async () => {
-            const beforeBalance = toBN(await web3.eth.getBalance(accounts[0]));
-            const receipt = await instance.withdraw(1, { from: accounts[0] });
-            const afterBalance = toBN(await web3.eth.getBalance(accounts[0]));
+      context('when the host tries to withdraw', () => {
+        it('should withdraw all deposits', async () => {
+          const beforeBalance = toBN(await web3.eth.getBalance(accounts[0]));
+          const receipt = await instance.withdraw(1, { from: accounts[0] });
+          const afterBalance = toBN(await web3.eth.getBalance(accounts[0]));
 
-            const fee = await calcFeeFromTxReceipt(receipt);
-            const delta = afterBalance.sub(beforeBalance).toString(10);
-            const deltaWithoutFee = toBN(toWei('0.03'));
+          const fee = await calcFeeFromTxReceipt(receipt);
+          const delta = afterBalance.sub(beforeBalance).toString(10);
+          const deltaWithoutFee = toBN(toWei('0.03'));
 
-            assert.equal(delta, deltaWithoutFee.sub(fee).toString(10));
-          });
-        });
-
-        context('when the host tries to withdraw twice', async () => {
-          it('should revert', async () => {
-            // the contract receive enough eth to be withdrawn from the host twice
-            instance.sendTransaction({ from: accounts[1], value: toWei('0.03') });
-
-            const beforeBalance = toBN(await web3.eth.getBalance(accounts[0]));
-            const receipt = await instance.withdraw(1, { from: accounts[0] });
-            const afterBalance = toBN(await web3.eth.getBalance(accounts[0]));
-
-            const fee = await calcFeeFromTxReceipt(receipt);
-            const delta = afterBalance.sub(beforeBalance).toString(10);
-            const deltaWithoutFee = toBN(toWei('0.03'));
-
-            assert.equal(delta, deltaWithoutFee.sub(fee).toString(10));
-
-            await truffleAssert.reverts(
-              instance.withdraw(1, { from: accounts[0] }),
-              'you aren\'t eligible to withdraw',
-            );
-          });
-        });
-
-        context('when the opponent tries to withdraw', () => {
-          it('should reverts', async () => {
-            truffleAssert.reverts(
-              instance.withdraw(1, { from: accounts[1] }),
-              'you aren\'t eligible to withdraw',
-            );
-          });
+          assert.equal(delta, deltaWithoutFee.sub(fee).toString(10));
         });
       });
 
-      context('when the game ends in a draw', () => {
-        beforeEach(async () => {
-          await deploy();
-          await instance.methods['createGame(bytes32)'](encryptedHandRock, { from: accounts[0], value: toWei('0.015') });
-          await instance.methods['joinGame(uint256,bytes32)'](1, encryptedHandRock, { from: accounts[1], value: toWei('0.015') });
-          await instance.revealHand(1, HAND.ROCK, soliditySha3('vanilla salt'), { from: accounts[0] });
-          await instance.revealHand(1, HAND.ROCK, soliditySha3('vanilla salt'), { from: accounts[1] });
+      context('when the host tries to withdraw twice', async () => {
+        it('should revert', async () => {
+          // the contract receive enough eth to be withdrawn from the host twice
+          instance.sendTransaction({ from: accounts[1], value: toWei('0.03') });
+
+          const beforeBalance = toBN(await web3.eth.getBalance(accounts[0]));
+          const receipt = await instance.withdraw(1, { from: accounts[0] });
+          const afterBalance = toBN(await web3.eth.getBalance(accounts[0]));
+
+          const fee = await calcFeeFromTxReceipt(receipt);
+          const delta = afterBalance.sub(beforeBalance).toString(10);
+          const deltaWithoutFee = toBN(toWei('0.03'));
+
+          assert.equal(delta, deltaWithoutFee.sub(fee).toString(10));
+
+          await truffleAssert.reverts(
+            instance.withdraw(1, { from: accounts[0] }),
+            'you aren\'t eligible to withdraw',
+          );
         });
+      });
 
-        context('when the host tries to withdraw', () => {
-          it('should withdraw deposits the only amount of deposited by myself', async () => {
-            const beforeHostBalance = toBN(await web3.eth.getBalance(accounts[0]));
-            const hostReceipt = await instance.withdraw(1, { from: accounts[0] });
-            const afterHostBalance = toBN(await web3.eth.getBalance(accounts[0]));
+      context('when the opponent tries to withdraw', () => {
+        it('should reverts', async () => {
+          truffleAssert.reverts(
+            instance.withdraw(1, { from: accounts[1] }),
+            'you aren\'t eligible to withdraw',
+          );
+        });
+      });
+    });
 
-            const hostFee = await calcFeeFromTxReceipt(hostReceipt);
-            const hostDelta = afterHostBalance.sub(beforeHostBalance).toString(10);
-            const hostDeltaWithoutFee = toBN(toWei('0.015'));
+    context('when the game ends in a draw', () => {
+      beforeEach(async () => {
+        await deploy();
+        await instance.methods['createGame(bytes32)'](encryptedHandRock, { from: accounts[0], value: toWei('0.015') });
+        await instance.methods['joinGame(uint256,bytes32)'](1, encryptedHandRock, { from: accounts[1], value: toWei('0.015') });
+        await instance.revealHand(1, HAND.ROCK, soliditySha3('vanilla salt'), { from: accounts[0] });
+        await instance.revealHand(1, HAND.ROCK, soliditySha3('vanilla salt'), { from: accounts[1] });
+      });
 
-            assert.equal(hostDelta, hostDeltaWithoutFee.sub(hostFee).toString(10));
+      context('when the host tries to withdraw', () => {
+        it('should withdraw deposits the only amount of deposited by myself', async () => {
+          const beforeHostBalance = toBN(await web3.eth.getBalance(accounts[0]));
+          const hostReceipt = await instance.withdraw(1, { from: accounts[0] });
+          const afterHostBalance = toBN(await web3.eth.getBalance(accounts[0]));
 
-            const beforeOpponentBalance = toBN(await web3.eth.getBalance(accounts[1]));
-            const opponentReceipt = await instance.withdraw(1, { from: accounts[1] });
-            const afterOpponentBalance = toBN(await web3.eth.getBalance(accounts[1]));
+          const hostFee = await calcFeeFromTxReceipt(hostReceipt);
+          const hostDelta = afterHostBalance.sub(beforeHostBalance).toString(10);
+          const hostDeltaWithoutFee = toBN(toWei('0.015'));
 
-            const opponentFee = await calcFeeFromTxReceipt(opponentReceipt);
-            const opponentDelta = afterOpponentBalance.sub(beforeOpponentBalance).toString(10);
-            const opponentDeltaWithoutFee = toBN(toWei('0.015'));
+          assert.equal(hostDelta, hostDeltaWithoutFee.sub(hostFee).toString(10));
 
-            assert.equal(opponentDelta, opponentDeltaWithoutFee.sub(opponentFee).toString(10));
-          });
+          const beforeOpponentBalance = toBN(await web3.eth.getBalance(accounts[1]));
+          const opponentReceipt = await instance.withdraw(1, { from: accounts[1] });
+          const afterOpponentBalance = toBN(await web3.eth.getBalance(accounts[1]));
+
+          const opponentFee = await calcFeeFromTxReceipt(opponentReceipt);
+          const opponentDelta = afterOpponentBalance.sub(beforeOpponentBalance).toString(10);
+          const opponentDeltaWithoutFee = toBN(toWei('0.015'));
+
+          assert.equal(opponentDelta, opponentDeltaWithoutFee.sub(opponentFee).toString(10));
         });
       });
     });
