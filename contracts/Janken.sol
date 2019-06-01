@@ -39,10 +39,6 @@ contract Janken {
     function () external payable {}
 
     function createGame(bytes32 encryptedHand) public payable {
-        createGame(encryptedHand, defaultWaitingWindow);
-    }
-
-    function createGame(bytes32 encryptedHand, uint256 waitingWindow) public payable {
         require(msg.value > 0, "deposit must be greater than 0");
 
         gameId += 1;
@@ -50,24 +46,12 @@ contract Janken {
         game.host = msg.sender;
         game.deposit = msg.value;
         game.hostEncryptedHand = encryptedHand;
-
-        uint256 window;
-        if (waitingWindow != 0) {
-            window = waitingWindow;
-        } else {
-            window = defaultWaitingWindow;
-        }
         // solium-disable-next-line security/no-block-members
-        game.commitmentDeadline = block.timestamp.add(window);
-
+        game.commitmentDeadline = block.timestamp.add(defaultWaitingWindow);
         game.status = GameStatus.Created;
     }
 
     function joinGame(uint256 id, bytes32 encryptedHand) public payable {
-        joinGame(id, encryptedHand, defaultWaitingWindow);
-    }
-
-    function joinGame(uint256 id, bytes32 encryptedHand, uint256 waitingWindow) public payable {
         Game storage game = games[id];
 
         require(game.status != GameStatus.DoesNotExist, "the game does not exist");
@@ -77,16 +61,8 @@ contract Janken {
 
         game.opponent = msg.sender;
         game.opponentEncryptedHand = encryptedHand;
-
-        uint256 window;
-        if (waitingWindow != 0) {
-            window = waitingWindow;
-        } else {
-            window = defaultWaitingWindow;
-        }
         // solium-disable-next-line security/no-block-members
-        game.revelationDeadline = block.timestamp.add(window);
-
+        game.revelationDeadline = block.timestamp.add(defaultWaitingWindow);
         game.status = GameStatus.Started;
     }
 
