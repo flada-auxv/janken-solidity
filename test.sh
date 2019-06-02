@@ -6,6 +6,6 @@
 npx ganache-cli > /dev/null 2>&1 &
 PID=$!
 
+rm -rf ./build
 npx truffle test
-
 kill ${PID}
