@@ -45,14 +45,14 @@ contract('Janken', (accounts) => {
 
         const firstGame = await instance.games.call(1);
         assert.equal(accounts[0], firstGame.host);
-        assert.equal(10, firstGame.deposit);
+        assert.equal(10, await instance.depositOf(1, accounts[0]));
 
         await instance.createGame(encryptedHand, { from: accounts[1], value: 42 });
         assert.equal(2, await instance.gameId.call());
 
         const secondGame = await instance.games.call(2);
         assert.equal(accounts[1], secondGame.host);
-        assert.equal(42, secondGame.deposit);
+        assert.equal(42, await instance.depositOf(2, accounts[1]));
       });
     });
 
@@ -356,7 +356,7 @@ contract('Janken', (accounts) => {
 
           await truffleAssert.reverts(
             instance.rescue(1, { from: accounts[0] }),
-            'invalid rescue',
+            'you don\'t have any deposit to rescue',
           );
         });
       });

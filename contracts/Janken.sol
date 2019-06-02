@@ -7,7 +7,6 @@ contract Janken {
 
     struct Game {
         GameStatus status;
-        uint256 deposit;
         address host;
         address opponent;
         bytes32 hostEncryptedHand;
@@ -18,6 +17,7 @@ contract Janken {
         bytes32 opponentSecret;
         uint256 commitmentDeadline;
         uint256 revelationDeadline;
+        mapping (address => uint256) deposits;
         mapping (address => uint256) allowedWithdrawal;
     }
 
@@ -44,7 +44,7 @@ contract Janken {
         gameId += 1;
         Game storage game = games[gameId];
         game.host = msg.sender;
-        game.deposit = msg.value;
+        game.deposits[msg.sender] = msg.value;
         game.hostEncryptedHand = encryptedHand;
         // solium-disable-next-line security/no-block-members
         game.commitmentDeadline = block.timestamp.add(defaultWaitingWindow);
@@ -56,10 +56,11 @@ contract Janken {
 
         require(game.status != GameStatus.DoesNotExist, "the game does not exist");
         gameStatusShouldBe(game, GameStatus.Created);
-        require(msg.value == game.deposit, "deposit amount must be equal the game host's amount");
+        require(msg.value == game.deposits[game.host], "deposit amount must be equal the game host's amount");
         require(hasNotOver(game.commitmentDeadline), "the game was closed for participation");
 
         game.opponent = msg.sender;
+        game.deposits[msg.sender] = msg.value;
         game.opponentEncryptedHand = encryptedHand;
         // solium-disable-next-line security/no-block-members
         game.revelationDeadline = block.timestamp.add(defaultWaitingWindow);
@@ -88,12 +89,12 @@ contract Janken {
         if (game.hostDecryptedHand != Hand.Null && game.opponentDecryptedHand != Hand.Null) {
             Result result = judge(game.hostDecryptedHand, game.opponentDecryptedHand);
             if (result == Result.Win) {
-                game.allowedWithdrawal[game.host] = game.deposit.mul(2);
+                game.allowedWithdrawal[game.host] = game.deposits[game.host].mul(2);
             } else if (result == Result.Loss) {
-                game.allowedWithdrawal[game.opponent] = game.deposit.mul(2);
+                game.allowedWithdrawal[game.opponent] = game.deposits[game.opponent].mul(2);
             } else if (result == Result.Draw) {
-                game.allowedWithdrawal[game.host] = game.deposit;
-                game.allowedWithdrawal[game.opponent] = game.deposit;
+                game.allowedWithdrawal[game.host] = game.deposits[game.host];
+                game.allowedWithdrawal[game.opponent] = game.deposits[game.opponent];
             } else {
                 revert("unreachable!");
             }
@@ -117,16 +118,14 @@ contract Janken {
     }
 
     function rescue(uint256 id) public {
-        Game memory game = games[id];
+        Game storage game = games[id];
 
         restrictAccessOnlyParticipants(game);
 
         if (game.status == GameStatus.Created && msg.sender == game.host && hasOver(game.commitmentDeadline)) {
-            // TODO: do not rescue twice
-            msg.sender.transfer(game.deposit);
+            _rescue(game);
         } else if (game.status == GameStatus.Started && isRevealed(game, msg.sender) && hasOver(game.revelationDeadline)) {
-            // TODO: do not rescue twice
-            msg.sender.transfer(game.deposit);
+            _rescue(game);
         } else {
             revert("invalid rescue");
         }
@@ -135,6 +134,11 @@ contract Janken {
     function getAllowedWithdrawalAmount(uint256 id, address addr) public view returns (uint256) {
         Game storage game = games[id];
         return game.allowedWithdrawal[addr];
+    }
+
+    function depositOf(uint id, address addr) public view returns (uint256) {
+        Game storage game = games[id];
+        return game.deposits[addr];
     }
 
     function judge(Hand hand1, Hand hand2) public pure returns (Result) {
@@ -155,6 +159,16 @@ contract Janken {
         } else {
             revert("unreachable!");
         }
+    }
+
+    function _rescue(Game storage game) private {
+        uint deposit = game.deposits[msg.sender];
+        if (deposit == 0) {
+            revert("you don't have any deposit to rescue");
+        }
+
+        game.deposits[msg.sender] = 0;
+        msg.sender.transfer(deposit);
     }
 
     function hasOver(uint256 time) private view returns(bool) {
