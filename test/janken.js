@@ -11,7 +11,6 @@ const HAND = {
   SCISSORS: 3,
 };
 
-let instance;
 const { soliditySha3, toBN, toWei } = web3.utils;
 
 function createEncryptedHash(hand, salt) {
@@ -31,6 +30,7 @@ const encryptedHandScissors = createEncryptedHash(HAND.SCISSORS, 'orange');
 
 
 contract('Janken', (accounts) => {
+  let instance;
   const deploy = async () => {
     instance = await Janken.new();
   };
