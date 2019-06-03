@@ -71,7 +71,7 @@ contract Janken {
         Game storage game = games[id];
 
         gameStatusShouldBe(game, GameStatus.Started);
-        restrictAccessOnlyParticipants(game);
+        restrictAccessOnlyParticipants(game, msg.sender);
 
         Hand hand = convertIntToHand(n);
         bytes32 eHand = encryptedHand(n, secret);
@@ -106,7 +106,7 @@ contract Janken {
         Game storage game = games[id];
 
         gameStatusShouldBe(game, GameStatus.AcceptingWithdrawal);
-        restrictAccessOnlyParticipants(game);
+        restrictAccessOnlyParticipants(game, msg.sender);
 
         uint256 allowedAmount = game.allowedWithdrawal[msg.sender];
         if (allowedAmount != 0) {
@@ -120,7 +120,7 @@ contract Janken {
     function rescue(uint256 id) public {
         Game storage game = games[id];
 
-        restrictAccessOnlyParticipants(game);
+        restrictAccessOnlyParticipants(game, msg.sender);
 
         if (game.status == GameStatus.Created && msg.sender == game.host && hasOver(game.commitmentDeadline)) {
             _rescue(game);
@@ -180,7 +180,7 @@ contract Janken {
         return !hasOver(time);
     }
 
-    function isRevealed(Game memory game, address addr) private view returns(bool) {
+    function isRevealed(Game memory game, address addr) private pure returns(bool) {
         if (addr == game.host) {
             return game.hostDecryptedHand != Hand.Null;
         } else if (addr == game.opponent) {
@@ -190,8 +190,8 @@ contract Janken {
         }
     }
 
-    function restrictAccessOnlyParticipants(Game memory game) private view {
-        require(msg.sender == game.host || msg.sender == game.opponent, "forbidden");
+    function restrictAccessOnlyParticipants(Game memory game, address sender) private pure {
+        require(sender == game.host || sender == game.opponent, "forbidden");
     }
 
     function gameStatusShouldBe(Game memory game, GameStatus status) private pure {
