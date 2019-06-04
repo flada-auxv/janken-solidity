@@ -3,30 +3,14 @@
 const Janken = artifacts.require('Janken');
 const truffleAssert = require('truffle-assertions');
 const { time } = require('openzeppelin-test-helpers');
+const helper = require('./helpers');
 
-const HAND = {
-  NULL: 0,
-  ROCK: 1,
-  PAPER: 2,
-  SCISSORS: 3,
-};
-
+const { HAND } = helper;
 const { soliditySha3, toBN, toWei } = web3.utils;
 
-function createEncryptedHash(hand, salt) {
-  const hashedSecret = soliditySha3(salt);
-  return soliditySha3({ type: 'uint', value: hand }, { type: 'bytes32', value: hashedSecret });
-}
-async function calcFeeFromTxReceipt(receipt) {
-  const tx = await web3.eth.getTransaction(receipt.tx);
-  const gasUsed = toBN(receipt.receipt.gasUsed);
-  const gasPrice = toBN(tx.gasPrice);
-  return gasPrice.mul(gasUsed);
-}
-
-const encryptedHand = createEncryptedHash(HAND.ROCK, 'vanilla salt');
+const encryptedHand = helper.createEncryptedHash(HAND.ROCK, 'vanilla salt');
 const encryptedHandRock = encryptedHand;
-const encryptedHandScissors = createEncryptedHash(HAND.SCISSORS, 'orange');
+const encryptedHandScissors = helper.createEncryptedHash(HAND.SCISSORS, 'orange');
 
 
 contract('Janken', (accounts) => {
@@ -189,8 +173,8 @@ contract('Janken', (accounts) => {
 
       context('when the game ends in a draw', () => {
         it('should update result of the game', async () => {
-          await instance.createGame(createEncryptedHash(HAND.ROCK, 'tiger'), { from: accounts[0], value: 10 });
-          await instance.joinGame(2, createEncryptedHash(HAND.ROCK, 'dragon'), { from: accounts[1], value: 10 });
+          await instance.createGame(helper.createEncryptedHash(HAND.ROCK, 'tiger'), { from: accounts[0], value: 10 });
+          await instance.joinGame(2, helper.createEncryptedHash(HAND.ROCK, 'dragon'), { from: accounts[1], value: 10 });
           await instance.revealHand(2, HAND.ROCK, soliditySha3('dragon'), { from: accounts[1] });
           await instance.revealHand(2, HAND.ROCK, soliditySha3('tiger'), { from: accounts[0] });
 
@@ -217,7 +201,7 @@ contract('Janken', (accounts) => {
           const receipt = await instance.withdraw(1, { from: accounts[0] });
           const afterBalance = toBN(await web3.eth.getBalance(accounts[0]));
 
-          const fee = await calcFeeFromTxReceipt(receipt);
+          const fee = await helper.calcFeeFromTxReceipt(receipt);
           const delta = afterBalance.sub(beforeBalance).toString(10);
           const deltaWithoutFee = toBN(toWei('0.03'));
 
@@ -234,7 +218,7 @@ contract('Janken', (accounts) => {
           const receipt = await instance.withdraw(1, { from: accounts[0] });
           const afterBalance = toBN(await web3.eth.getBalance(accounts[0]));
 
-          const fee = await calcFeeFromTxReceipt(receipt);
+          const fee = await helper.calcFeeFromTxReceipt(receipt);
           const delta = afterBalance.sub(beforeBalance).toString(10);
           const deltaWithoutFee = toBN(toWei('0.03'));
 
@@ -272,7 +256,7 @@ contract('Janken', (accounts) => {
           const hostReceipt = await instance.withdraw(1, { from: accounts[0] });
           const afterHostBalance = toBN(await web3.eth.getBalance(accounts[0]));
 
-          const hostFee = await calcFeeFromTxReceipt(hostReceipt);
+          const hostFee = await helper.calcFeeFromTxReceipt(hostReceipt);
           const hostDelta = afterHostBalance.sub(beforeHostBalance).toString(10);
           const hostDeltaWithoutFee = toBN(toWei('0.015'));
 
@@ -282,7 +266,7 @@ contract('Janken', (accounts) => {
           const opponentReceipt = await instance.withdraw(1, { from: accounts[1] });
           const afterOpponentBalance = toBN(await web3.eth.getBalance(accounts[1]));
 
-          const opponentFee = await calcFeeFromTxReceipt(opponentReceipt);
+          const opponentFee = await helper.calcFeeFromTxReceipt(opponentReceipt);
           const opponentDelta = afterOpponentBalance.sub(beforeOpponentBalance).toString(10);
           const opponentDeltaWithoutFee = toBN(toWei('0.015'));
 
@@ -335,7 +319,7 @@ contract('Janken', (accounts) => {
         const receipt = await instance.rescue(1, { from: accounts[0] });
         const afterBalance = toBN(await web3.eth.getBalance(accounts[0]));
 
-        const fee = await calcFeeFromTxReceipt(receipt);
+        const fee = await helper.calcFeeFromTxReceipt(receipt);
         const delta = afterBalance.sub(beforeBalance).toString(10);
         const deltaWithoutFee = toBN(toWei('0.015'));
 
@@ -348,7 +332,7 @@ contract('Janken', (accounts) => {
           const receipt = await instance.rescue(1, { from: accounts[0] });
           const afterBalance = toBN(await web3.eth.getBalance(accounts[0]));
 
-          const fee = await calcFeeFromTxReceipt(receipt);
+          const fee = await helper.calcFeeFromTxReceipt(receipt);
           const delta = afterBalance.sub(beforeBalance).toString(10);
           const deltaWithoutFee = toBN(toWei('0.015'));
 
