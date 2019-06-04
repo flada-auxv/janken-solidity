@@ -1,3 +1,6 @@
+/* eslint-disable-next-line import/no-extraneous-dependencies */
+const web3 = require('web3'); // expects this module is injected by truffle
+
 const { soliditySha3, toBN } = web3.utils;
 
 const HAND = {
