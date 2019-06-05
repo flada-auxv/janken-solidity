@@ -103,13 +103,13 @@ contract Janken {
         );
     }
 
-    function revealHand(uint256 id, uint256 n, bytes32 secret) public {
+    function revealHand(uint256 id, uint256 handInt, bytes32 secret) public {
         Game storage game = games[id];
 
         gameStatusShouldBe(game, GameStatus.Started);
         restrictAccessOnlyParticipants(game, msg.sender);
 
-        Hand hand = convertIntToHand(n);
+        Hand hand = convertIntToHand(handInt);
         bytes32 eHand = encryptedHand(n, secret);
 
         if (msg.sender == game.host) {
