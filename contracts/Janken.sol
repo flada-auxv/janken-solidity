@@ -38,6 +38,27 @@ contract Janken {
     constructor() public payable {}
     function () external payable {}
 
+    event Created(
+        uint256 gameId,
+        address host,
+        uint256 deposit,
+        uint256 deadlineToJoin
+    );
+    event Started(
+        uint256 gameId,
+        address host,
+        address opponent,
+        uint256 deposit,
+        uint256 deadlineToReveal
+    );
+    event AcceptingWithdrawal(
+        uint256 gameId,
+        address host,
+        address opponent,
+        uint256 hostAllowedAmountToWithdrawal,
+        uint256 opponentAllowedAmountToWithdrawal
+    );
+
     function createGame(bytes32 encryptedHand) public payable {
         require(msg.value > 0, "deposit must be greater than 0");
 
@@ -49,6 +70,13 @@ contract Janken {
         // solium-disable-next-line security/no-block-members
         game.commitmentDeadline = block.timestamp.add(defaultWaitingWindow);
         game.status = GameStatus.Created;
+
+        emit Created(
+            gameId,
+            game.host,
+            game.deposits[game.host],
+            game.commitmentDeadline
+        );
     }
 
     function joinGame(uint256 id, bytes32 encryptedHand) public payable {
@@ -65,6 +93,14 @@ contract Janken {
         // solium-disable-next-line security/no-block-members
         game.revelationDeadline = block.timestamp.add(defaultWaitingWindow);
         game.status = GameStatus.Started;
+
+        emit Started(
+            gameId,
+            game.host,
+            game.opponent,
+            game.deposits[game.opponent],
+            game.revelationDeadline
+        );
     }
 
     function revealHand(uint256 id, uint256 n, bytes32 secret) public {
@@ -99,6 +135,14 @@ contract Janken {
                 revert("unreachable!");
             }
             game.status = GameStatus.AcceptingWithdrawal;
+
+            emit Started(
+                gameId,
+                game.host,
+                game.opponent,
+                game.allowedWithdrawal[game.host],
+                game.allowedWithdrawal[game.opponent]
+            );
         }
     }
 
