@@ -136,7 +136,7 @@ contract Janken {
             }
             game.status = GameStatus.AcceptingWithdrawal;
 
-            emit Started(
+            emit AcceptingWithdrawal(
                 gameId,
                 game.host,
                 game.opponent,
