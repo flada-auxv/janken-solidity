@@ -110,7 +110,7 @@ contract Janken {
         restrictAccessOnlyParticipants(game, msg.sender);
 
         Hand hand = convertIntToHand(handInt);
-        bytes32 eHand = encryptedHand(n, secret);
+        bytes32 eHand = encryptedHand(handInt, secret);
 
         if (msg.sender == game.host) {
             require(game.hostEncryptedHand == eHand, "commit verification is failed");
@@ -242,21 +242,21 @@ contract Janken {
         require(game.status == status, "status is invalid");
     }
 
-    function convertIntToHand(uint256 n) private pure returns (Hand) {
-        if (n == 0) {
-            return Hand.Null;
-        } else if (n == 1) {
+    function convertIntToHand(uint256 handInt) private pure returns (Hand) {
+        if (handInt == 0) {
+            revert("Invalid value");
+        } else if (handInt == 1) {
             return Hand.Rock;
-        } else if (n == 2) {
+        } else if (handInt == 2) {
             return Hand.Paper;
-        } else if (n == 3) {
+        } else if (handInt == 3) {
             return Hand.Scissors;
         } else {
             revert("Unknown value");
         }
     }
 
-    function encryptedHand(uint256 n, bytes32 secret) private pure returns (bytes32) {
-        return keccak256(abi.encodePacked(n, secret));
+    function encryptedHand(uint256 handInt, bytes32 secret) private pure returns (bytes32) {
+        return keccak256(abi.encodePacked(handInt, secret));
     }
 }
