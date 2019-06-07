@@ -131,8 +131,6 @@ contract Janken {
             } else if (result == Result.Draw) {
                 game.allowedWithdrawal[game.host] = game.deposits[game.host];
                 game.allowedWithdrawal[game.opponent] = game.deposits[game.opponent];
-            } else {
-                revert("unreachable!");
             }
             game.status = GameStatus.AcceptingWithdrawal;
 
