@@ -193,7 +193,7 @@ contract Janken {
         ) {
             return Result.Win;
         } else if (
-         hand1 == Hand.Rock && hand1 == Hand.Paper ||
+         hand1 == Hand.Rock && hand2 == Hand.Paper ||
          hand1 == Hand.Paper && hand2 == Hand.Scissors ||
          hand1 == Hand.Scissors && hand2 == Hand.Rock
         ) {
