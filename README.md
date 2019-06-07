@@ -1,38 +1,80 @@
 # janken-solidity
 
+## run through in your console
+
+```js
+npx truffle develop
+
+truffle(develop)> migrate --reset
+truffle(develop)> exec scripts/run.js
+Using network 'develop'.
+
+host =>
+  handInt: 1,
+  encryptedHand: 0xf307279d3fe9b98cbf0514a3de81e4e2c7465ea4c3893527ec105629e31f4959,
+  secret: 0xbf5631c9938a1638afad2e1ba2439fe8b7e7d6410957a05c1b60ed8536373203
+gameId =>  1
+opponent =>
+  handInt: 2,
+  encryptedHand: 0x9b9d9d35bfd420b9c7e860583927b1773583caca81c75b0326d48ea2ecd66cd9,
+  secret: 0x740ce4b15f0ed6433d4d981f33ba2b3bff4d32f2b9cb3eb277b005bed19519fc
+result =>
+    beforeBalance: 98995848940000000000,
+    afterBalance: 100995330380000000000,
+    delta: 1999481440000000000,
+    fee: 518560000000000,
+    deltaWithoutFee: 1998962880000000000
+```
 ## operation flow
 
-### create a game by player1(the host)
+### create a game by Player1(the host)
 
 Generate a secret in a cryptographically secure way and hash it with your chosen hand. You need to remember the secret to prove correctness later. Also, need to send ether with that transaction as a deposit.
 
-In `npx truffle console`:
-
-```node
-const crypto = require('crypto');
-const helper = require('./test/helpers');
-const { toWei } = web3.utils;
-
-// chose your hand in 0: Rock, 1: Paper, 2: Scissors
-const hostHand = 0;
-const hostSecret = crypto.randomBytes(32).toString('hex');
-const hostEncryptedHand = helper.createEncryptedHash(hostHand, hostSecret);
-console.log(`host => encryptedHand: ${hostEncryptedHand}, secret: ${hostSecret}`);
-// => host => encryptedHand: 0xddcc0ff99e92fb5def54265ee13acd54903a93b10f577c89b08203c493b866fe, secret: d9e505d9afcdd7e4847f4a105c1f367f27b3193a57935136276b4130d0d1b521
-
-instance = await Janken.deployed()
-await instance.createGame(hostEncryptedHand, { value: toWei('1') })
+```js
+createGame(hostEncryptedHand, { value: toWei('1'), from: host })
 ```
 
-### join the game by player2(the opponent)
+### join the game by Player2(the opponent)
 
 Commit the hand in the same way as the host. The transaction requires you to send the same amount of ether as host's deposit.
 
-```node
-const opponentHand = 1;
-const opponentSecret = crypto.randomBytes(32).toString('hex');
-const opponentEncryptedHand = helper.createEncryptedHash(opponentHand, opponentSecret);
-console.log(`opponent => encryptedHand: ${opponentEncryptedHand}, secret: ${opponentSecret}`);
-
-await instance.joinGame(1, opponentEncryptedHand, { value: toWei('1') })
+```js
+joinGame(gameId, opponentEncryptedHand, { value: toWei('1'), from: opponent })
 ```
+
+#### note
+
+You can join a game only if commitmentDeadline is not past.
+
+### reveal the hand you commited before
+
+Reveal the not encrypted hand by sending it together with the secret used for encryption before.
+
+```js
+revealHand(gameId, hostHand, hostSecret, { from: host })
+revealHand(gameId, opponentHand, opponentSecret, { from: opponent })
+```
+
+#### note
+
+If you do not reveal by revelationDeadline, you may lose money by running rescue on your opponent.
+
+### withdraw funds deposited by the two (if you win!)
+
+```js
+withdraw(gameId, { from: opponent })
+```
+
+### rescue the deposit (optional)
+
+There are two situations in which you can execute `resuce()`.
+The first situation is when you are a host of a game that no one has joined by commitmentDeadline.
+The second one is when you reveal a hand but your opponent doesn't reveal by revelationDeadline.
+commitmentDeadLine and revelationDeadline are set a term of a day in default.
+
+```js
+rescue(gameId, { from: host })
+```
+
+See [run.js](run.js) for more details.
