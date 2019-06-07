@@ -27,6 +27,7 @@ async function calcFeeFromTxReceipt(receipt) {
 const encryptedHand = createEncryptedHand(HAND.ROCK, soliditySha3('vanilla salt'));
 const encryptedHandRock = encryptedHand;
 const encryptedHandScissors = createEncryptedHand(HAND.SCISSORS, soliditySha3('orange'));
+const encryptedHandPaper = createEncryptedHand(HAND.PAPER, soliditySha3('prepared'));
 
 
 contract('Janken', (accounts) => {
@@ -177,10 +178,10 @@ contract('Janken', (accounts) => {
 
       context('when the host loses', () => {
         it('should update result of the game', async () => {
-          await instance.createGame(encryptedHandScissors, { from: accounts[0], value: 10 });
-          await instance.joinGame(2, encryptedHandRock, { from: accounts[1], value: 10 });
-          await instance.revealHand(2, HAND.SCISSORS, soliditySha3('orange'), { from: accounts[0] });
-          await instance.revealHand(2, HAND.ROCK, soliditySha3('vanilla salt'), { from: accounts[1] });
+          await instance.createGame(encryptedHandPaper, { from: accounts[0], value: 10 });
+          await instance.joinGame(2, encryptedHandScissors, { from: accounts[1], value: 10 });
+          await instance.revealHand(2, HAND.PAPER, soliditySha3('prepared'), { from: accounts[0] });
+          await instance.revealHand(2, HAND.SCISSORS, soliditySha3('orange'), { from: accounts[1] });
 
           assert.equal(0, await instance.getAllowedWithdrawalAmount.call(2, accounts[0]));
           assert.equal(20, await instance.getAllowedWithdrawalAmount.call(2, accounts[1]));
