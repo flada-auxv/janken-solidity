@@ -187,15 +187,15 @@ contract Janken {
         if (hand1 == hand2) {
             return Result.Draw;
         } else if (
-         hand1 == Hand.Rock && hand2 == Hand.Scissors ||
-         hand1 == Hand.Paper && hand2 == Hand.Rock ||
-         hand1 == Hand.Scissors && hand2 == Hand.Paper
+         (hand1 == Hand.Rock && hand2 == Hand.Scissors) ||
+         (hand1 == Hand.Paper && hand2 == Hand.Rock) ||
+         (hand1 == Hand.Scissors && hand2 == Hand.Paper)
         ) {
             return Result.Win;
         } else if (
-         hand1 == Hand.Rock && hand2 == Hand.Paper ||
-         hand1 == Hand.Paper && hand2 == Hand.Scissors ||
-         hand1 == Hand.Scissors && hand2 == Hand.Rock
+         (hand1 == Hand.Rock && hand2 == Hand.Paper) ||
+         (hand1 == Hand.Paper && hand2 == Hand.Scissors) ||
+         (hand1 == Hand.Scissors && hand2 == Hand.Rock)
         ) {
             return Result.Loss;
         } else {
