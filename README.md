@@ -90,6 +90,16 @@ result =>
     deltaWithoutFee: 1998962880000000000
 ```
 
+## compile and run on remix
+
+Go to https://remix.ethereum.org, and copy and paste [Jankein.sol](contracts/Janken.sol) in Remix.
+You need to do one thing to compile and run on Remix, fix import statement about `SafeMath.sol` like below diffs.
+
+```diff
+-import "openzeppelin-solidity/contracts/math/SafeMath.sol";
++import "github.com/OpenZeppelin/openzeppelin-solidity/contracts/math/SafeMath.sol";
+```
+
 ## run tests
 
 ```sh
