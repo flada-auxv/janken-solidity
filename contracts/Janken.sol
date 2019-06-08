@@ -33,6 +33,7 @@ contract Janken {
 
     uint256 public gameId = 0;
     uint256 public defaultWaitingWindow = 1 days;
+    uint256 public minDeposit = 1 finney;
     mapping (uint256 => Game) public games;
 
     constructor() public payable {}
@@ -60,7 +61,7 @@ contract Janken {
     );
 
     function createGame(bytes32 encryptedHand) public payable {
-        require(msg.value > 0, "deposit must be greater than 0");
+        require(msg.value >= minDeposit, "deposit must be greater than minDeposit");
 
         gameId += 1;
         Game storage game = games[gameId];
