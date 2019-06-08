@@ -43,7 +43,7 @@ revealHand(gameId, opponentHand, opponentSecret, { from: opponent })
 
 #### note
 
-If you do not reveal by deadlineToReveal, you may lose money by running rescue on your opponent.
+If you don't reveal your hand by the time of deadlineToReveal, you will lose your all deposit.
 
 ### withdraw funds deposited by the two (if you win!)
 
