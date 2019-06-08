@@ -53,7 +53,7 @@ module.exports = {
       network_id: '*',
       gas: 0xfffffffffff,
       gasPrice: 0x01,
-    }
+    },
     // Another network with more advanced options...
     // advanced: {
     // port: 8777,             // Custom port
