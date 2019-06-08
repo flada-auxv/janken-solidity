@@ -1,5 +1,7 @@
 # janken-solidity
 
+[![Build Status](https://travis-ci.org/flada-auxv/janken-solidity.svg?branch=master)](https://travis-ci.org/flada-auxv/janken-solidity)
+
 ## operation flow
 
 ### create a game by Player1(the host)
