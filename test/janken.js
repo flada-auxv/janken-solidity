@@ -67,14 +67,12 @@ contract('Janken', (accounts) => {
     });
 
     describe('waitingWindow', () => {
-      context('not specify as a function argument', () => {
-        it('sets commitmentDeadline in 1 day', async () => {
-          const timeAtSendingTx = Math.floor(Date.now() / 1000);
-          await instance.createGame(encryptedHand, { from: accounts[0], value: 10 });
+      it('sets commitmentDeadline in 1 day', async () => {
+        const timeAtSendingTx = Math.floor(Date.now() / 1000);
+        await instance.createGame(encryptedHand, { from: accounts[0], value: 10 });
 
-          const game = await instance.games.call(1);
-          assert.closeTo(timeAtSendingTx + (60 * 60 * 24), game.commitmentDeadline.toNumber(), 3);
-        });
+        const game = await instance.games.call(1);
+        assert.closeTo(timeAtSendingTx + (60 * 60 * 24), game.commitmentDeadline.toNumber(), 3);
       });
     });
   });
