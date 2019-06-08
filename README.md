@@ -35,6 +35,16 @@ Generate a secret in a cryptographically secure way and hash it with your chosen
 createGame(hostEncryptedHand, { value: web3.utils.toWei('1'), from: host })
 ```
 
+#### how to generate encrypted hand
+
+```js
+// chose your hand in Rock: 1, Paper: 2, Scissors: 3
+const hand = 1;
+// this `secret` is necessary for a step that reveals your hand so you need to make a note.
+const secret = web3.utils.soliditySha3({ type: 'bytes32', value: crypto.randomBytes(32).toString('hex') });
+const encryptedHand = web3.utils.soliditySha3({ type: 'uint', value: hand }, { type: 'bytes32', value: secret });
+```
+
 ### join the game by Player2(the opponent)
 
 Commit the hand in the same way as the host. The transaction requires you to send the same amount of ether as host's deposit.
