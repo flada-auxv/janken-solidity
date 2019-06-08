@@ -100,6 +100,8 @@ You need to do one thing to compile and run on Remix, fix import statement about
 +import "github.com/OpenZeppelin/openzeppelin-solidity/contracts/math/SafeMath.sol";
 ```
 
+Deployment may fail. Raise the amount of Gas Limit on Remix and try again.
+
 ## run tests
 
 ```sh
