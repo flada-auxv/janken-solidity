@@ -1,30 +1,5 @@
 # janken-solidity
 
-## run through in your console
-
-```js
-npx truffle develop
-
-truffle(develop)> migrate --reset
-truffle(develop)> exec scripts/run.js
-Using network 'develop'.
-
-host =>
-  handInt: 1,
-  encryptedHand: 0xf307279d3fe9b98cbf0514a3de81e4e2c7465ea4c3893527ec105629e31f4959,
-  secret: 0xbf5631c9938a1638afad2e1ba2439fe8b7e7d6410957a05c1b60ed8536373203
-gameId =>  1
-opponent =>
-  handInt: 2,
-  encryptedHand: 0x9b9d9d35bfd420b9c7e860583927b1773583caca81c75b0326d48ea2ecd66cd9,
-  secret: 0x740ce4b15f0ed6433d4d981f33ba2b3bff4d32f2b9cb3eb277b005bed19519fc
-result =>
-    beforeBalance: 98995848940000000000,
-    afterBalance: 100995330380000000000,
-    delta: 1999481440000000000,
-    fee: 518560000000000,
-    deltaWithoutFee: 1998962880000000000
-```
 ## operation flow
 
 ### create a game by Player1(the host)
@@ -88,3 +63,29 @@ rescue(gameId, { from: host })
 ```
 
 See [run.js](run.js) for more details.
+
+## run through in your console
+
+```js
+npx truffle develop
+
+truffle(develop)> migrate --reset
+truffle(develop)> exec scripts/run.js
+Using network 'develop'.
+
+host =>
+  handInt: 1,
+  encryptedHand: 0xf307279d3fe9b98cbf0514a3de81e4e2c7465ea4c3893527ec105629e31f4959,
+  secret: 0xbf5631c9938a1638afad2e1ba2439fe8b7e7d6410957a05c1b60ed8536373203
+gameId =>  1
+opponent =>
+  handInt: 2,
+  encryptedHand: 0x9b9d9d35bfd420b9c7e860583927b1773583caca81c75b0326d48ea2ecd66cd9,
+  secret: 0x740ce4b15f0ed6433d4d981f33ba2b3bff4d32f2b9cb3eb277b005bed19519fc
+result =>
+    beforeBalance: 98995848940000000000,
+    afterBalance: 100995330380000000000,
+    delta: 1999481440000000000,
+    fee: 518560000000000,
+    deltaWithoutFee: 1998962880000000000
+```
