@@ -32,7 +32,7 @@ result =>
 Generate a secret in a cryptographically secure way and hash it with your chosen hand. You need to remember the secret to prove correctness later. Also, need to send ether with that transaction as a deposit.
 
 ```js
-createGame(hostEncryptedHand, { value: toWei('1'), from: host })
+createGame(hostEncryptedHand, { value: web3.utils.toWei('1'), from: host })
 ```
 
 ### join the game by Player2(the opponent)
@@ -40,7 +40,7 @@ createGame(hostEncryptedHand, { value: toWei('1'), from: host })
 Commit the hand in the same way as the host. The transaction requires you to send the same amount of ether as host's deposit.
 
 ```js
-joinGame(gameId, opponentEncryptedHand, { value: toWei('1'), from: opponent })
+joinGame(gameId, opponentEncryptedHand, { value: web3.utils.toWei('1'), from: opponent })
 ```
 
 #### note
