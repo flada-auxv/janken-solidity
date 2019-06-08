@@ -89,3 +89,9 @@ result =>
     fee: 518560000000000,
     deltaWithoutFee: 1998962880000000000
 ```
+
+## run tests
+
+```sh
+./test.sh
+```
