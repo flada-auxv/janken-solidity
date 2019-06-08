@@ -263,7 +263,7 @@ contract('Janken', (accounts) => {
 
           const fee = await calcFeeFromTxReceipt(receipt);
           const delta = afterBalance.sub(beforeBalance).toString(10);
-          const deltaWithoutFee = toBN(toWei('3', 'finney'));
+          const deltaWithoutFee = toBN(toWei('6', 'finney'));
 
           assert.equal(delta, deltaWithoutFee.sub(fee).toString(10));
 
