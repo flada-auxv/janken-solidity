@@ -165,9 +165,9 @@ contract Janken {
 
         restrictAccessOnlyParticipants(game, msg.sender);
 
-        if (game.status == GameStatus.Created && msg.sender == game.host && hasOver(game.commitmentDeadline)) {
+        if (isAllowedToRescueAtCreated(game)) {
             _rescue(game);
-        } else if (game.status == GameStatus.Started && isRevealed(game, msg.sender) && hasOver(game.revelationDeadline)) {
+        } else if (isAllowedToRescueAtStarted(game)) {
             _rescue(game);
         } else {
             revert("invalid rescue");
@@ -205,13 +205,28 @@ contract Janken {
     }
 
     function _rescue(Game storage game) private {
-        uint deposit = game.deposits[msg.sender];
-        if (deposit == 0) {
-            revert("you don't have any deposit to rescue");
-        }
+        uint256 hostDeposit = game.deposits[game.host];
+        uint256 opponentDeposit = game.deposits[game.opponent];
 
-        game.deposits[msg.sender] = 0;
-        msg.sender.transfer(deposit);
+        game.deposits[game.host] = 0;
+        game.deposits[game.opponent] = 0;
+
+        msg.sender.transfer(hostDeposit.add(opponentDeposit));
+    }
+
+    function isAllowedToRescueAtCreated(Game storage game) private view returns(bool) {
+        return game.status == GameStatus.Created &&
+        msg.sender == game.host &&
+        game.deposits[game.host] != 0 &&
+        hasOver(game.commitmentDeadline);
+    }
+
+    function isAllowedToRescueAtStarted(Game storage game) private view returns(bool) {
+        return game.status == GameStatus.Started &&
+        isRevealed(game, msg.sender) &&
+        game.deposits[game.host] != 0 &&
+        game.deposits[game.opponent] != 0 &&
+        hasOver(game.revelationDeadline);
     }
 
     function hasOver(uint256 time) private view returns(bool) {

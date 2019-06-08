@@ -331,46 +331,34 @@ contract('Janken', (accounts) => {
       });
     });
 
-    context('the commitment deadline of the game is still open', () => {
-      beforeEach(async () => {
-        await deploy();
-        await instance.createGame(encryptedHandRock, { from: accounts[0], value: toWei('0.015') });
-      });
+    context('game.status == Created', () => {
+      context('the commitment deadline of the game is still open', () => {
+        beforeEach(async () => {
+          await deploy();
+          await instance.createGame(encryptedHandRock, { from: accounts[0], value: toWei('0.015') });
+        });
 
-      it('should revert', async () => {
-        await truffleAssert.reverts(
-          instance.rescue(1, { from: accounts[0] }),
-          'invalid rescue',
-        );
-      });
-    });
-
-    context('the commitment deadline of the game is over', () => {
-      beforeEach(async () => {
-        await deploy();
-
-        // the contract receive enough eth to be called `rescue` from the host twice
-        instance.sendTransaction({ from: accounts[9], value: toWei('0.03') });
-
-        await instance.createGame(encryptedHandRock, { from: accounts[0], value: toWei('0.015') });
-
-        time.increase(time.duration.days(3));
-      });
-
-      it('can rescue host\'s deposit', async () => {
-        const beforeBalance = toBN(await web3.eth.getBalance(accounts[0]));
-        const receipt = await instance.rescue(1, { from: accounts[0] });
-        const afterBalance = toBN(await web3.eth.getBalance(accounts[0]));
-
-        const fee = await calcFeeFromTxReceipt(receipt);
-        const delta = afterBalance.sub(beforeBalance).toString(10);
-        const deltaWithoutFee = toBN(toWei('0.015'));
-
-        assert.equal(delta, deltaWithoutFee.sub(fee).toString(10));
-      });
-
-      context('calling rescue twice', () => {
         it('should revert', async () => {
+          await truffleAssert.reverts(
+            instance.rescue(1, { from: accounts[0] }),
+            'invalid rescue',
+          );
+        });
+      });
+
+      context('the commitment deadline of the game is over', () => {
+        beforeEach(async () => {
+          await deploy();
+
+          // the contract receive enough eth to be called `rescue` from the host twice
+          instance.sendTransaction({ from: accounts[9], value: toWei('0.03') });
+
+          await instance.createGame(encryptedHandRock, { from: accounts[0], value: toWei('0.015') });
+
+          time.increase(time.duration.days(3));
+        });
+
+        it('can rescue host\'s deposit', async () => {
           const beforeBalance = toBN(await web3.eth.getBalance(accounts[0]));
           const receipt = await instance.rescue(1, { from: accounts[0] });
           const afterBalance = toBN(await web3.eth.getBalance(accounts[0]));
@@ -380,12 +368,146 @@ contract('Janken', (accounts) => {
           const deltaWithoutFee = toBN(toWei('0.015'));
 
           assert.equal(delta, deltaWithoutFee.sub(fee).toString(10));
+        });
 
+        context('calling rescue twice', () => {
+          it('should revert', async () => {
+            const beforeBalance = toBN(await web3.eth.getBalance(accounts[0]));
+            const receipt = await instance.rescue(1, { from: accounts[0] });
+            const afterBalance = toBN(await web3.eth.getBalance(accounts[0]));
+
+            const fee = await calcFeeFromTxReceipt(receipt);
+            const delta = afterBalance.sub(beforeBalance).toString(10);
+            const deltaWithoutFee = toBN(toWei('0.015'));
+
+            assert.equal(delta, deltaWithoutFee.sub(fee).toString(10));
+
+            await truffleAssert.reverts(
+              instance.rescue(1, { from: accounts[0] }),
+              'invalid rescue',
+            );
+          });
+        });
+      });
+    });
+
+    context('game.status == Started', () => {
+      beforeEach(async () => {
+        await deploy();
+        await instance.createGame(encryptedHandRock, { from: accounts[0], value: toWei('0.015') });
+        await instance.joinGame(1, encryptedHandPaper, { from: accounts[1], value: toWei('0.015') });
+      });
+
+      context('the deadline to reveal has passed and no one has revealed themselves hand', () => {
+        beforeEach(() => {
+          time.increase(time.duration.days(3));
+        });
+
+        it('should revert', async () => {
           await truffleAssert.reverts(
             instance.rescue(1, { from: accounts[0] }),
-            'you don\'t have any deposit to rescue',
+            'invalid rescue',
+          );
+
+          await truffleAssert.reverts(
+            instance.rescue(1, { from: accounts[1] }),
+            'invalid rescue',
           );
         });
+      });
+
+      context('the deadline to reveal has passed after only the host has revealed his hand', () => {
+        beforeEach(async () => {
+          await instance.revealHand(1, HAND.ROCK, soliditySha3('vanilla salt'), { from: accounts[0] });
+          time.increase(time.duration.days(3));
+        });
+
+        context('calling from the host', () => {
+          it('can rescue by the tx sent from the host', async () => {
+            const beforeBalance = toBN(await web3.eth.getBalance(accounts[0]));
+            const receipt = await instance.rescue(1, { from: accounts[0] });
+            const afterBalance = toBN(await web3.eth.getBalance(accounts[0]));
+
+            const fee = await calcFeeFromTxReceipt(receipt);
+            const delta = afterBalance.sub(beforeBalance).toString(10);
+            const deltaWithoutFee = toBN(toWei('0.03'));
+
+            assert.equal(delta, deltaWithoutFee.sub(fee).toString(10));
+          });
+
+          context('calling twice', () => {
+            it('should revert', async () => {
+              const beforeBalance = toBN(await web3.eth.getBalance(accounts[0]));
+              const receipt = await instance.rescue(1, { from: accounts[0] });
+              const afterBalance = toBN(await web3.eth.getBalance(accounts[0]));
+
+              const fee = await calcFeeFromTxReceipt(receipt);
+              const delta = afterBalance.sub(beforeBalance).toString(10);
+              const deltaWithoutFee = toBN(toWei('0.03'));
+
+              assert.equal(delta, deltaWithoutFee.sub(fee).toString(10));
+
+              await truffleAssert.reverts(
+                instance.rescue(1, { from: accounts[0] }),
+                'invalid rescue',
+              );
+            });
+          });
+        });
+
+        context('calling from the opponent', () => {
+          it('should revert', async () => {
+            await truffleAssert.reverts(
+              instance.rescue(1, { from: accounts[1] }),
+              'invalid rescue',
+            );
+          });
+        });
+      });
+    });
+
+    context('game.status == AcceptingWithdrawal', () => {
+      beforeEach(async () => {
+        await deploy();
+        await instance.createGame(encryptedHandRock, { from: accounts[0], value: toWei('0.015') });
+        await instance.joinGame(1, encryptedHandPaper, { from: accounts[1], value: toWei('0.015') });
+        await instance.revealHand(1, HAND.ROCK, soliditySha3('vanilla salt'), { from: accounts[0] });
+        await instance.revealHand(1, HAND.PAPER, soliditySha3('prepared'), { from: accounts[1] });
+      });
+
+      it('should revert', async () => {
+        await truffleAssert.reverts(
+          instance.rescue(1, { from: accounts[0] }),
+          'invalid rescue',
+        );
+
+        await truffleAssert.reverts(
+          instance.rescue(1, { from: accounts[1] }),
+          'invalid rescue',
+        );
+      });
+    });
+
+    context('game.status == Finished', () => {
+      beforeEach(async () => {
+        await deploy();
+        await instance.createGame(encryptedHandRock, { from: accounts[0], value: toWei('0.015') });
+        await instance.joinGame(1, encryptedHandPaper, { from: accounts[1], value: toWei('0.015') });
+        await instance.revealHand(1, HAND.ROCK, soliditySha3('vanilla salt'), { from: accounts[0] });
+        await instance.revealHand(1, HAND.PAPER, soliditySha3('prepared'), { from: accounts[1] });
+        await instance.withdraw(1, { from: accounts[1] });
+      });
+
+      it('should revert', async () => {
+        await truffleAssert.reverts(
+          instance.rescue(1, { from: accounts[0] }),
+          'invalid rescue',
+        );
+
+        await truffleAssert.reverts(
+          instance.rescue(1, { from: accounts[1] }),
+          'invalid rescue',
+        );
       });
     });
   });
