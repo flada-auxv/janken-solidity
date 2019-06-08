@@ -133,6 +133,19 @@ contract('Janken', (accounts) => {
       await instance.joinGame(1, encryptedHandScissors, { from: accounts[1], value: 10 });
     });
 
+    context('the deadline to reveal has passed', () => {
+      beforeEach(async () => {
+        time.increase(time.duration.days(3));
+      });
+
+      it('should revert', async () => {
+        await truffleAssert.reverts(
+          instance.revealHand(1, HAND.ROCK, soliditySha3('vanilla salt'), { from: accounts[0] }),
+          'the deadline to reveal has passed',
+        );
+      });
+    });
+
     describe('commit verification and save its result', () => {
       context('when msg.sender is the game host', () => {
         it('should update host side attributes of the game', async () => {
