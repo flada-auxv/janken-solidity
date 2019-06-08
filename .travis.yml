@@ -12,8 +12,7 @@ jobs:
       script: './test.sh'
     - stage: Test
       name: "Unit tests with coverage report"
-      script: './test.sh'
-      env: SOLIDITY_COVERAGE=true
+      script: 'npx solidity-coverage && cat coverage/lcov.info | npx coveralls'
 notifications:
   slack:
     rooms:
