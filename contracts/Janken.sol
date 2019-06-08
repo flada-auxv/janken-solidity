@@ -152,12 +152,11 @@ contract Janken {
         restrictAccessOnlyParticipants(game, msg.sender);
 
         uint256 allowedAmount = game.allowedWithdrawal[msg.sender];
-        if (allowedAmount != 0) {
-            game.allowedWithdrawal[msg.sender] = 0;
-            msg.sender.transfer(allowedAmount);
-        } else {
-            revert("you aren't eligible to withdraw");
-        }
+
+        require(allowedAmount != 0, "you aren't eligible to withdraw");
+
+        game.allowedWithdrawal[msg.sender] = 0;
+        msg.sender.transfer(allowedAmount);
     }
 
     function rescue(uint256 id) public {
@@ -165,13 +164,15 @@ contract Janken {
 
         restrictAccessOnlyParticipants(game, msg.sender);
 
-        if (isAllowedToRescueAtCreated(game)) {
-            _rescue(game);
-        } else if (isAllowedToRescueAtStarted(game)) {
-            _rescue(game);
-        } else {
-            revert("invalid rescue");
-        }
+        require(isAllowedToRescueAtCreated(game) || isAllowedToRescueAtStarted(game), "invalid rescue");
+
+        uint256 hostDeposit = game.deposits[game.host];
+        uint256 opponentDeposit = game.deposits[game.opponent];
+
+        game.deposits[game.host] = 0;
+        game.deposits[game.opponent] = 0;
+
+        msg.sender.transfer(hostDeposit.add(opponentDeposit));
     }
 
     function getAllowedWithdrawalAmount(uint256 id, address addr) public view returns (uint256) {
@@ -202,16 +203,6 @@ contract Janken {
         } else {
             revert("unreachable!");
         }
-    }
-
-    function _rescue(Game storage game) private {
-        uint256 hostDeposit = game.deposits[game.host];
-        uint256 opponentDeposit = game.deposits[game.opponent];
-
-        game.deposits[game.host] = 0;
-        game.deposits[game.opponent] = 0;
-
-        msg.sender.transfer(hostDeposit.add(opponentDeposit));
     }
 
     function isAllowedToRescueAtCreated(Game storage game) private view returns(bool) {
