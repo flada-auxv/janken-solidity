@@ -1,4 +1,5 @@
 const Janken = artifacts.require('Janken');
-module.exports = function (deployer) {
+
+module.exports = (deployer) => {
   deployer.deploy(Janken);
 };
