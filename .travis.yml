@@ -1,0 +1,17 @@
+language: node_js
+node_js:
+  - '10'
+cache: npm
+jobs:
+  include:
+    - stage: Test
+      name: Linter
+      script: npx eslint .
+    - stage: Test
+      name: Unit tests
+      script: './test.sh'
+notifications:
+  slack:
+    secure: KPLIVAG6QEHLBufLm5jpTFwrUKcrjmZwKF4HpgqiAp1uOnBu8C0V2rBlAP/ZJrfIHqS5QM28VKNeq6+iueeDyoc3RdUYYTwe7AmoU1ghNCTrQJ6gsPLQOuvxEP4DQg+AjVB4sARlM+qWEG4wIlaxxVuiYrc+OaljBLgeDxto0GFfBO67f4OZBTK3sbNuJb4xGYoxo9o0LkYwaM+9ngYKfH/8S9ozfunAGuh6HPiZup7bYEDKbkitehRpGb3aIuY6fRF/sU3EUOcqMn55HlILXjnXbQwvKLnh4c1AcnnEx7NWnDpnJPJv1rKQs3ALf+q1mpdA9WqJYznE3dL/W5VXv6FjCeaARpU2WWJ+dH0lldg/d5BvuJLk+QRxsHXAe7jgRmJJ7+rY87j7hA9gayYw3abTCG+r6+KE57ywb1WnlMnhp5+AF6HNYQuRk7k433QtvzIj8Ekek9BErt3jKblcyEDWUC+t2nGf8Avvu32AOfqK4Pw2UeE6CmDfS20JzVzEtgd7ODK7t1G5T2y6bYXeP5Qocil13zlflgcszs1/9ce757ToW/2qZeBkKuMdvPDxTRu0dTKyOxz98CkPo8IxgfEuNrGv9tSoAYb8swnSQ7W+NSRqvWdJ5stkas70HFtC0imnSj/xqTkO5H5B+8KERNPzpkesRn8IA/ZgWlyG91w=
+    on_success: change
+    on_failure: always
