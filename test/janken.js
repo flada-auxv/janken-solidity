@@ -141,7 +141,7 @@ contract('Janken', (accounts) => {
       it('should revert', async () => {
         await truffleAssert.reverts(
           instance.revealHand(1, HAND.ROCK, soliditySha3('vanilla salt'), { from: accounts[0] }),
-          'the deadline to reveal has passed',
+          'the deadline to reveal your hand of this game has passed',
         );
       });
     });

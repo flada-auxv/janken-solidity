@@ -108,6 +108,7 @@ contract Janken {
 
         gameStatusShouldBe(game, GameStatus.Started);
         restrictAccessOnlyParticipants(game, msg.sender);
+        require(hasNotOver(game.revelationDeadline), "the deadline to reveal your hand of this game has passed");
 
         Hand hand = convertIntToHand(handInt);
         bytes32 eHand = encryptedHand(handInt, secret);
