@@ -36,6 +36,10 @@ contract('Janken', (accounts) => {
     instance = await Janken.new();
   };
 
+  describe('failed test for travis', () => {
+    it('fails', () => { assert.equal(1, 2); });
+  });
+
   describe('createGame', () => {
     beforeEach(deploy);
 
