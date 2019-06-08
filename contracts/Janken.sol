@@ -15,8 +15,8 @@ contract Janken {
         Hand opponentDecryptedHand;
         bytes32 hostSecret;
         bytes32 opponentSecret;
-        uint256 commitmentDeadline;
-        uint256 revelationDeadline;
+        uint256 deadlineToJoin;
+        uint256 deadlineToReveal;
         mapping (address => uint256) deposits;
         mapping (address => uint256) allowedWithdrawal;
     }
@@ -68,14 +68,14 @@ contract Janken {
         game.deposits[msg.sender] = msg.value;
         game.hostEncryptedHand = encryptedHand;
         // solium-disable-next-line security/no-block-members
-        game.commitmentDeadline = block.timestamp.add(defaultWaitingWindow);
+        game.deadlineToJoin = block.timestamp.add(defaultWaitingWindow);
         game.status = GameStatus.Created;
 
         emit Created(
             gameId,
             game.host,
             game.deposits[game.host],
-            game.commitmentDeadline
+            game.deadlineToJoin
         );
     }
 
@@ -85,13 +85,13 @@ contract Janken {
         require(game.status != GameStatus.DoesNotExist, "the game does not exist");
         gameStatusShouldBe(game, GameStatus.Created);
         require(msg.value == game.deposits[game.host], "deposit amount must be equal the game host's amount");
-        require(hasNotOver(game.commitmentDeadline), "the game was closed for participation");
+        require(hasNotOver(game.deadlineToJoin), "the game was closed for participation");
 
         game.opponent = msg.sender;
         game.deposits[msg.sender] = msg.value;
         game.opponentEncryptedHand = encryptedHand;
         // solium-disable-next-line security/no-block-members
-        game.revelationDeadline = block.timestamp.add(defaultWaitingWindow);
+        game.deadlineToReveal = block.timestamp.add(defaultWaitingWindow);
         game.status = GameStatus.Started;
 
         emit Started(
@@ -99,7 +99,7 @@ contract Janken {
             game.host,
             game.opponent,
             game.deposits[game.opponent],
-            game.revelationDeadline
+            game.deadlineToReveal
         );
     }
 
@@ -108,7 +108,7 @@ contract Janken {
 
         gameStatusShouldBe(game, GameStatus.Started);
         restrictAccessOnlyParticipants(game, msg.sender);
-        require(hasNotOver(game.revelationDeadline), "the deadline to reveal your hand of this game has passed");
+        require(hasNotOver(game.deadlineToReveal), "the deadline to reveal your hand of this game has passed");
 
         Hand hand = convertIntToHand(handInt);
         bytes32 eHand = encryptedHand(handInt, secret);
@@ -209,7 +209,7 @@ contract Janken {
         return game.status == GameStatus.Created &&
         msg.sender == game.host &&
         game.deposits[game.host] != 0 &&
-        hasOver(game.commitmentDeadline);
+        hasOver(game.deadlineToJoin);
     }
 
     function isAllowedToRescueAtStarted(Game storage game) private view returns(bool) {
@@ -217,7 +217,7 @@ contract Janken {
         isRevealed(game, msg.sender) &&
         game.deposits[game.host] != 0 &&
         game.deposits[game.opponent] != 0 &&
-        hasOver(game.revelationDeadline);
+        hasOver(game.deadlineToReveal);
     }
 
     function hasOver(uint256 time) private view returns(bool) {

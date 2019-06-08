@@ -30,7 +30,7 @@ joinGame(gameId, opponentEncryptedHand, { value: web3.utils.toWei('1'), from: op
 
 #### note
 
-You can join a game only if commitmentDeadline is not past.
+You can join a game only if deadlineToJoin is not past.
 
 ### reveal the hand you commited before
 
@@ -43,7 +43,7 @@ revealHand(gameId, opponentHand, opponentSecret, { from: opponent })
 
 #### note
 
-If you do not reveal by revelationDeadline, you may lose money by running rescue on your opponent.
+If you do not reveal by deadlineToReveal, you may lose money by running rescue on your opponent.
 
 ### withdraw funds deposited by the two (if you win!)
 
@@ -54,9 +54,9 @@ withdraw(gameId, { from: opponent })
 ### rescue the deposit (optional)
 
 There are two situations in which you can execute `resuce()`.
-The first situation is when you are a host of a game that no one has joined by commitmentDeadline.
-The second one is when you reveal a hand but your opponent doesn't reveal by revelationDeadline.
-commitmentDeadLine and revelationDeadline are set a term of a day in default.
+The first situation is when you are a host of a game that no one has joined by deadlineToJoin.
+The second one is when you reveal a hand but your opponent doesn't reveal by deadlineToReveal.
+deadlineToJoin and deadlineToReveal are set a term of a day in default.
 
 ```js
 rescue(gameId, { from: host })
