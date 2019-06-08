@@ -1,6 +1,7 @@
 # janken-solidity
 
 [![Build Status](https://travis-ci.org/flada-auxv/janken-solidity.svg?branch=master)](https://travis-ci.org/flada-auxv/janken-solidity)
+[![Coverage Status](https://coveralls.io/repos/github/flada-auxv/janken-solidity/badge.svg?branch=coveralls)](https://coveralls.io/github/flada-auxv/janken-solidity?branch=coveralls)
 
 ## operation flow
 

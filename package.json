@@ -7,7 +7,8 @@
     "test": "test"
   },
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "./test.sh",
+    "coverage": "npx solidity-coverage && cat coverage/lcov.info | npx coveralls"
   },
   "repository": {
     "type": "git",
@@ -24,11 +25,13 @@
   },
   "devDependencies": {
     "chai": "^4.2.0",
+    "coveralls": "^3.0.4",
     "eslint": "^5.16.0",
     "eslint-config-airbnb-base": "^13.1.0",
     "eslint-plugin-import": "^2.17.3",
     "ganache-cli": "^6.4.3",
     "openzeppelin-test-helpers": "^0.4.0",
+    "solidity-coverage": "^0.5.11",
     "truffle": "^5.0.19",
     "truffle-assertions": "^0.9.0"
   }

@@ -10,6 +10,9 @@ jobs:
     - stage: Test
       name: Unit tests
       script: './test.sh'
+    - stage: Test
+      name: "Unit tests with coverage report"
+      script: 'npx solidity-coverage && cat coverage/lcov.info | npx coveralls'
 notifications:
   slack:
     rooms:
