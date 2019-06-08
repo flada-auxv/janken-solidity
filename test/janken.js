@@ -109,6 +109,21 @@ contract('Janken', (accounts) => {
         );
       });
     });
+
+    context('the commitment deadline of the game is over', () => {
+      beforeEach(async () => {
+        await deploy();
+        await instance.createGame(encryptedHandRock, { from: accounts[0], value: toWei('0.01') });
+        time.increase(time.duration.days(3));
+      });
+
+      it('should revert', async () => {
+        await truffleAssert.reverts(
+          instance.joinGame(1, encryptedHand, { from: accounts[1], value: toWei('0.01') }),
+          'the game was closed for participation',
+        );
+      });
+    });
   });
 
   describe('revealHand', () => {
