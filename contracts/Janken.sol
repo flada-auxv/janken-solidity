@@ -202,7 +202,7 @@ contract Janken {
         ) {
             return Result.Loss;
         } else {
-            revert("unreachable!");
+            assert(false);
         }
     }
 
