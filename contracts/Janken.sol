@@ -231,12 +231,12 @@ contract Janken {
     }
 
     function isRevealed(Game memory game, address addr) private pure returns(bool) {
+        require(addr == game.host || addr == game.opponent, "Unknown player");
+
         if (addr == game.host) {
             return game.hostDecryptedHand != Hand.Null;
         } else if (addr == game.opponent) {
             return game.opponentDecryptedHand != Hand.Null;
-        } else {
-            revert("Unknown player");
         }
     }
 
