@@ -249,17 +249,10 @@ contract Janken {
     }
 
     function convertIntToHand(uint256 handInt) private pure returns (Hand) {
-        if (handInt == 0) {
-            revert("Invalid value");
-        } else if (handInt == 1) {
-            return Hand.Rock;
-        } else if (handInt == 2) {
-            return Hand.Paper;
-        } else if (handInt == 3) {
-            return Hand.Scissors;
-        } else {
-            revert("Unknown value");
-        }
+        Hand hand = Hand(handInt);
+        require(hand == Hand.Rock || hand == Hand.Paper || hand == Hand.Scissors, "Invalid value");
+
+        return hand;
     }
 
     function encryptedHand(uint256 handInt, bytes32 secret) private pure returns (bytes32) {
