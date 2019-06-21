@@ -20,9 +20,6 @@
     "url": "https://github.com/flada-auxv/janken-solidity/issues"
   },
   "homepage": "https://github.com/flada-auxv/janken-solidity#readme",
-  "dependencies": {
-    "openzeppelin-solidity": "^2.3.0"
-  },
   "devDependencies": {
     "chai": "^4.2.0",
     "coveralls": "^3.0.4",
@@ -30,6 +27,7 @@
     "eslint-config-airbnb-base": "^13.1.0",
     "eslint-plugin-import": "^2.17.3",
     "ganache-cli": "^6.4.4",
+    "openzeppelin-solidity": "^2.3.0",
     "openzeppelin-test-helpers": "^0.4.0",
     "solidity-coverage": "^0.5.11",
     "truffle": "^5.0.24",
