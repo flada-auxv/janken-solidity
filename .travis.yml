@@ -2,17 +2,27 @@ language: node_js
 node_js:
   - '10'
 cache: npm
+install:
+  - cd truffle
+  - npm install
+  - cd -
 jobs:
   include:
-    - stage: Test
+    - stage: Test(contract)
       name: Linter
+      before_script: cd truffle
       script: npx eslint .
-    - stage: Test
+      after_script: cd -
+    - stage: Test(contract)
       name: Unit tests
-      script: './test.sh'
-    - stage: Test
-      name: "Unit tests with coverage report"
-      script: 'npx solidity-coverage && cat coverage/lcov.info | npx coveralls'
+      before_script: cd truffle
+      script: ./test.sh
+      after_script: cd -
+    - stage: Test(contract)
+      name: Unit tests with coverage report
+      before_script: cd truffle
+      script: npx solidity-coverage && cat coverage/lcov.info | npx coveralls
+      after_script: cd -
 notifications:
   slack:
     rooms:
