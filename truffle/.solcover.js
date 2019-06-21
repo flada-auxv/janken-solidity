@@ -1,3 +1,6 @@
 module.exports = {
-  norpc: true
+  norpc: true,
+  skipFiles: [
+   'Migrations.sol'
+  ]
 }
