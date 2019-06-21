@@ -21,7 +21,7 @@ jobs:
     - stage: Test(contract)
       name: Unit tests with coverage report
       before_script: cd truffle
-      script: npx solidity-coverage && cat coverage/lcov.info | npx coveralls
+      script: CONTINUOUS_INTEGRATION=true SOLIDITY_COVERAGE=true ./test.sh
       after_script: cd -
 notifications:
   slack:
