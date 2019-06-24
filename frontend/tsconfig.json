@@ -1,5 +1,12 @@
 {
   "compilerOptions": {
-    "sourceMap": true
+    "esModuleInterop": true,
+    "jsx": "react",
+    "lib": [
+      "dom"
+    ],
+    "module": "es2015",
+    "sourceMap": true,
+    "target": "es5"
   }
 }
