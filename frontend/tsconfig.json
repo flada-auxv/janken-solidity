@@ -1,12 +1,23 @@
 {
   "compilerOptions": {
     "esModuleInterop": true,
+    "incremental": true,
     "jsx": "react",
     "lib": [
-      "dom"
+      "dom",
+      "dom.iterable",
+      "es2020"
     ],
     "module": "es2015",
+    "outDir": "./dist",
     "sourceMap": true,
-    "target": "es5"
+    "target": "es5",
+    // がんばらないTypeScript
+    // "noImplicitAny": false,
+    // "noImplicitThis": false,
+    // "strictNullChecks": false,
+    // "strictFunctionTypes": false,
+    // "strictBindCallApply": false,
+    // "strictPropertyInitialization": false,
   }
 }

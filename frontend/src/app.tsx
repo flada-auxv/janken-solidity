@@ -1,5 +1,18 @@
 import React from 'react';
-import ReactDOM from 'react-dom';
+import { Drizzle } from 'drizzle';
+import { DrizzleContext } from 'drizzle-react';
 
-const element = <div>hi!</div>;
-ReactDOM.render(element, document.getElementById('app'));
+import Layout from './components/Layout';
+import drizzleOptions from './drizzleOptions';
+
+const drizzle = new Drizzle(drizzleOptions);
+
+export default class App extends React.Component {
+  render() {
+    return (
+      <DrizzleContext.Provider drizzle={drizzle}>
+        <Layout />
+      </DrizzleContext.Provider>
+    )
+  }
+}
