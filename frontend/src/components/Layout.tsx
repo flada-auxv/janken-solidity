@@ -9,9 +9,7 @@ export default class Layout extends React.Component {
         {drizzleContext => {
           const { drizzle, drizzleState, initialized } = drizzleContext;
 
-          if (!initialized) {
-            return 'loading...';
-          }
+          if (!initialized) return 'loading...';
 
           return (
             <AppMain drizzle={drizzle} drizzleState={drizzleState} />

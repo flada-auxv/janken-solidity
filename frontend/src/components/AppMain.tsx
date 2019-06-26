@@ -11,16 +11,21 @@ interface State {
 export default class AppMain extends React.Component<Props, State> {
   state = { dataKey: null };
 
+  async componentDidMount() {
+    const { drizzle } = this.props;
+    const { Janken } = drizzle.contracts;
+
+    var dataKey = Janken.methods['gameId'].cacheCall();
+    this.setState({ dataKey });
+  }
+
   render() {
     const { Janken } = this.props.drizzleState.contracts;
-    const game = Janken.games[1];
-    debugger
-    console.log('games', Janken.games);
-    console.log('game', game);
+    const gameId = Janken.gameId[this.state.dataKey];
 
     return (
       <div>
-        <p>{game}</p>
+        <p>hi: {gameId && gameId.value}</p>
       </div>
     )
   }
